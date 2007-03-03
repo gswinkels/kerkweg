@@ -1,0 +1,32 @@
+--- Variables for class DrawModel ---
+bandwidth         int         v 53= 61 62
+bandwidth         int         a 77 82
+c                 double      v 59= 60
+d                 Graphics    v 41= 45 46 47 69 72 73
+e                 WindowEvent a 93
+g                 Graphics    a 39 75
+g                 Graphics    a 87 88 89
+glass             Dimension   c 20= 28 29
+maxx              int         v 42= 46 56 56= 58 59
+maxy              int         v 43= 46 52 52= 53 68
+miny              int         v 51= 53 65 66 68
+myheight          int         c 19= 29 29
+mywidth           int         c 18= 28 29
+pi                double      v 44= 60
+s                 String[]    a 26
+s                 String      a 34 35
+shadow            Image       p 23 40= 41 88 89
+t                 int         v 58= 59 67 72 73
+titlebarthickness int         v 48= 51
+x                 DrawModel   v 27= 28 30
+xbegin            int         v 54= 56 69 72 73
+xeind             int         v 55= 56
+y                 double      v 60= 61 61= 63
+y                 double      a 77 81 81= 82 82= 83
+y0                double      v 62= 64
+yas               int         v 64= 66 66= 73
+ybegin            int         v 49= 51
+yeind             int         v 50= 52
+ymin              int         a 77 81
+yt                int         v 68= 69
+yvalue            int         v 63= 65 65= 72
