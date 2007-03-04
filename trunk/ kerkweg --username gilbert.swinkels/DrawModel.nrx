@@ -46,11 +46,11 @@ class DrawModel adapter extends Frame implements WindowListener
     d.fillRect(0,0,maxx,maxy)                -- set background black
     d.setColor(Color.white)                  -- draw pixels white
     titlebarthickness=20
-    ybegin=10
-    yeind=10
-    miny=ybegin+titlebarthickness
+    ybegin=50
+    yeind=50
+    ybegin=ybegin+titlebarthickness
     maxy=maxy-yeind
-    bandwidth=maxy-miny         -- y coordinate value will stick to this band  
+    bandwidth=maxy-ybegin        -- y coordinate value will stick to this band  
     xbegin=10                                 -- pixels free at start of x-axis
     xeind=10                                  -- pixels free at end of x-axis
     maxx=maxx-xbegin-xeind
@@ -58,19 +58,19 @@ class DrawModel adapter extends Frame implements WindowListener
     loop t=0 to maxx
       c = double t/maxx
       y = double Math.sin(2*pi*2*c)
+      y = -y                    -- java awt coordinate system (0,0) is upper left hand
+                                -- and we would like to see it lower laft hand
       y = double ytransform(y, -1, bandwidth)
       y0 = double ytransform(double 0, -1, bandwidth)
       yvalue= int Math.round(y)
       yas= int Math.round(y0)
-      yvalue=yvalue+miny
-      yas=yas+miny
       if t = 0 then do
-         loop yt=miny to maxy
+         loop yt=ybegin to maxy
          d.fillRect(0+xbegin,yt,1,1)
          end
       end    
-      d.fillRect(t+xbegin,yvalue,1,1)
-      d.fillRect(t+xbegin,yas,1,1)
+      d.fillRect(t+xbegin,yvalue+ybegin,1,1)
+      d.fillRect(t+xbegin,yas+ybegin,1,1)
     end 
     paint(g)                                      -- paint to screen
 
