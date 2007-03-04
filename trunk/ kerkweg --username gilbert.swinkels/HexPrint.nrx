@@ -1,6 +1,16 @@
 /* file\HexPrint.nrx
 Print file content in classic hexadecimal dump format.
 Parameter: inputfile */
+/* Voorbeeld alleenstaand programma
+   voor bestandsmanipulatie
+  
+   Dit voorbeeld dumpt een bestand in hex formaat 
+   voorbeeld uit een IBM Redbook
+   
+   @author Gilbert Swinkels
+   @version March 4th, 2007
+*/
+
 parse arg inFileName .
 if inFileName = '' then do
 say 'Usage: HexPrint fileName'
