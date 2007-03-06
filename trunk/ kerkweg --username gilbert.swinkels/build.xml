@@ -1,22 +1,16 @@
 <?xml version="1.0"?>
 
-<project name="eoc" basedir="." default="usage">
+<project name="NetRexx" basedir="." default="usage">
     <property file="build.properties"/>
-
-    <property name="src.dir" value="src"/>
-    <property name="db.dir" value="db"/>
-	<property name="build.dir" value="build"/>
-    <!-- property name="build.dir" value="${web.dir}/WEB-INF/classes"/ -->
-    <property name="name" value="eoc"/>
+    <property name="name" value="NetRexx"/>
 
     <path id="master-classpath">
-       <!-- include reference to jars for compilation       -->
-        <fileset dir="${appserver.home}/common/lib">
+        <fileset dir="${deploy.path}">
             <include name="*.jar"/>
         </fileset>
         <pathelement path="${build.dir}"/>
     </path>
-
+    
     <target name="usage">
         <echo message=""/>
         <echo message="${name} build file"/>
@@ -24,151 +18,40 @@
         <echo message=""/>
         <echo message="Available targets are:"/>
         <echo message=""/>
-        <echo message="build     --> Build the application"/>
-        <echo message="clean     --> Delete .class files"/>
-        <echo message="junit     --> Run unit tests"/>
-		<echo message="createTables "/>
-		<echo message="dropTables "/>
-		<echo message="loadData"/>
-		<echo message="printData"/>
-		<echo message="cleanData"/>
+        <echo message="build     --> Build NetRexx source files"/>
+        <echo message="deploy    --> Deploy as a jar into mylib"/>
+        <echo message="clean     --> Delete class and crossref files"/>
         <echo message=""/>
+
     </target>
 
-    <target name="build" description="Compile main source tree java files">
-        <mkdir dir="${build.dir}"/>
-        <javac destdir="${build.dir}" target="1.3" debug="true"
-               deprecation="false" optimize="false" failonerror="true">
-            <src path="${src.dir}"/>
-            <classpath refid="master-classpath"/>
-        </javac>
+    <target name="build" description="Compile source tree NetRexx files">
+        <mkdir dir="classes"/>
+        <netrexxc srcDir="." includes="*.nrx" 
+		destDir="classes" classpath="." 
+		comments="true" crossref="false" replace="true" keep="true"/> 
     </target>
 
-    
+        <target name="deploy" depends="build" description="Deploy application as a JAR file">
+        <jar destfile="gs.jar">            
+            <fileset dir="./classes">
+                <include name="**/*.class"/>
+            </fileset>
+        </jar>
+        <copy todir="${deploy.path}" preservelastmodified="true">
+            <fileset dir=".">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+		<delete><fileset dir"."><include name="gs.jar"></include></fileset></delete> 
+    </target>
+
     <target name="clean" description="Clean output directories"> 
-       <delete> 
-         <fileset dir="${build.dir}"> 
-            <include name="**/*.class"/> 
+      <delete> 
+         <fileset dir="./classes"> 
+            <include name="*.*"/> 
          </fileset> 
-       </delete> 
+      </delete> 
     </target> 
-
-
- <target name="junit" depends="build,clearData,loadData" description="Run JUnit Tests">
-  <junit printsummary="on" fork="false" haltonfailure="false" failureproperty="tests.failed" showoutput="true"> 
-   <classpath refid="master-classpath"/>
-    <formatter type="brief" usefile="false"/>
-    <batchtest>
-       <fileset dir="${build.dir}">
-        <include name="**/Test*.*"/>
-       </fileset> 
-    </batchtest>
-  </junit>
-  <fail if="tests.failed">
-     tests.failed=${tests.failed}
-     ***********************************************************
-     *********************************************************** 
-     ****         One or more tests failed! Check the output ...                        **** 
-     ***********************************************************
-     *********************************************************** 
-  </fail>
- </target>
-
-
-
-    
-
-
-<target name="createTables"> 
-<echo message="CREATE TABLES USING: ${db.driver} ${db.url}"/> 
-<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue"> 
-<classpath refid="master-classpath"/> 
--- create tables for the settlement case study  (woensdag 25 oktober 2006)
-CREATE TABLE `currencies` (
-  `cur_numcode` int(3) unsigned NOT NULL,
-  `cur_isocode` varchar(3) NOT NULL,
-  `cur_rate` decimal(15,8) unsigned NOT NULL,
-  PRIMARY KEY  (`cur_numcode`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-CREATE TABLE `cash_balances` (
-  `cashbal_participant` int(5) unsigned NOT NULL,
-  `cashbal_numcode` int(3) NOT NULL,
-  `cashbal_balance` decimal(15,2) signed NOT NULL,
-  PRIMARY KEY  (`cashbal_participant`,`cashbal_numcode`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-CREATE TABLE `securities_balances` (
-  `secbal_participant` int(5) unsigned NOT NULL,
-  `secbal_security` int(6) NOT NULL,
-  `secbal_balance` decimal(15,0) signed NOT NULL,
-  `secbal_lentbalance` decimal(15,0) signed NOT NULL,
-  PRIMARY KEY  (`secbal_participant`,`secbal_security`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-CREATE TABLE `credit_lines` (
-  `line_participant` int(5) unsigned NOT NULL,
-  `line_balance` decimal(15,2) signed NOT NULL,
-  `line_lentbalance` decimal(15,2) signed NOT NULL,
-  PRIMARY KEY  (`line_participant`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-CREATE TABLE `instructions` (
-  `ins_security` int(6) unsigned NOT NULL,
-  `ins_buyer` int(5) unsigned NOT NULL,
-  `ins_seller` int(5) unsigned NOT NULL,
-  `ins_nominal_amount` decimal (15,0)unsigned NOT NULL,
-  `ins_cash_correspondent` int(3) unsigned NOT NULL,
-  `ins_type` varchar(4) NOT NULL,
-  `ins_settlement_date` date NOT NULL,
-  `ins_settlement_amount` decimal(15,2) unsigned NOT NULL,
-  `ins_priority` varchar(1) NOT NULL,
-  PRIMARY KEY  (`ins_security`,`ins_buyer`,`ins_seller`,`ins_settlement_amount`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-</sql> 
-</target> 
-<target name="dropTables"> 
-<echo message="DROP TABLES USING: ${db.driver} ${db.url}"/>
-<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue">
-<classpath refid="master-classpath"/>
-DROP TABLE instructions; 
-DROP TABLE credit_lines;
-DROP TABLE cash_balances;
-DROP TABLE securities_balances;
-DROP TABLE currencies;
-</sql>
-</target>
-<target name="loadData">
-<echo message="LOAD DATA USING: ${db.driver} ${db.url}"/>
-<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue">
-<classpath refid="master-classpath"/>
-LOAD DATA INFILE 'currency.data' INTO TABLE currencies 
-FIELDS TERMINATED BY '\t' ENCLOSED BY '' ESCAPED BY '\\'
-LINES TERMINATED BY '\r\n' STARTING BY '';
-LOAD DATA INFILE 'instr.data' INTO TABLE instructions
-FIELDS TERMINATED BY '\t' ENCLOSED BY '' ESCAPED BY '\\'
-LINES TERMINATED BY '\r\n' STARTING BY '';
-LOAD DATA INFILE 'secbal.data' INTO TABLE securities_balances
-FIELDS TERMINATED BY '\t' ENCLOSED BY '' ESCAPED BY '\\'
-LINES TERMINATED BY '\r\n' STARTING BY '';
-LOAD DATA INFILE 'cashbal.data' INTO TABLE cash_balances
-FIELDS TERMINATED BY '\t' ENCLOSED BY '' ESCAPED BY '\\'
-LINES TERMINATED BY '\r\n' STARTING BY '';
-LOAD DATA INFILE 'credline.data' INTO TABLE credit_lines
-FIELDS TERMINATED BY '\t' ENCLOSED BY '' ESCAPED BY '\\'
-LINES TERMINATED BY '\r\n' STARTING BY '';
-</sql>
-</target>
-<target name="printData">
-<echo message="PRINT DATA USING: ${db.driver} ${db.url}"/>
-<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue" print="true">
-<classpath refid="master-classpath"/>
-SELECT * FROM products;
-</sql>
-</target>
-<target name="clearData">
-<echo message="CLEAR DATA USING: ${db.driver} ${db.url}"/>
-<sql driver="${db.driver}" url="${db.url}" userid="${db.user}" password="${db.pw}" onerror="continue">
-<classpath refid="master-classpath"/>
-DELETE FROM products;
-</sql>
-</target>
-
 
 </project>
