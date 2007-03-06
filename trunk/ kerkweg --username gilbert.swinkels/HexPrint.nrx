@@ -1,6 +1,3 @@
-/* file\HexPrint.nrx
-Print file content in classic hexadecimal dump format.
-Parameter: inputfile */
 /* Voorbeeld alleenstaand programma
    voor bestandsmanipulatie
   
@@ -9,6 +6,7 @@ Parameter: inputfile */
    
    @author Gilbert Swinkels
    @version March 4th, 2007
+   @param input file 
 */
 
 parse arg inFileName .
