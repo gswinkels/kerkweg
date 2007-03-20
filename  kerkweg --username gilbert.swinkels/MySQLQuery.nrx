@@ -12,6 +12,11 @@
 --db.user=gilbert
 --db.pw=Stahlgewitter
 --classpath to driver D:\Program Files\MySQL\mysql-connector-java-3.1.13\mysql-connector-java-3.1.13-bin.jar
+-- essential mysql commands
+-- mysql -ugilbert -p
+-- use eoc;
+-- show tables;
+-- describe currencies;
 
 
 import java.sql
@@ -22,7 +27,7 @@ if url = ""   then url = "jdbc:mysql://localhost/eoc"
 
 do 
  say "Loading MySQL driver classes..."
- Class.forName("com.mysql.jdbcDriver").newInstance()
+ Class.forName("com.mysql.jdbc.Driver").newInstance()
  catch e1 = Exception
   say "MySQL driver class could not be found and loaded"
   say "Exception (" e1 ") caught: \n" e1.getMessage()
@@ -55,7 +60,7 @@ do -- get list of currencies
  rs = ResultSet stmt.executeQuery(query)
  say "Results:"
  loop row=0 while rs.next()
-   say rs.getString("cur_numcode")   rs.getString("cur_isocode ")   -
+   say rs.getString("cur_numcode")   rs.getString("cur_isocode")   -
    rs.getString("cur_rate")
  end
  rs.close() -- close the ResultSet
