@@ -1,0 +1,35 @@
+/* Voorbeeld "send mail" klasse
+   Server voor binnenkomende berichten (POP3): pop.gmail.com
+   SSL gebruiken: ja
+   Poort: 995 
+   Server voor uitgaande berichten (SMTP) - hiervoor is TLS vereist: smtp.gmail.com
+   Verificatie gebruiken: ja
+   STARTTLS gebruiken: ja (bij een aantal clients wordt dit SSL genoemd)
+   Poort: 465 of 587 
+   Accountnaam: uw Gmail-gebruikersnaam (inclusief @gmail.com) 
+   E-mailadres: uw volledige e-mailadres van Gmail (gebruikersnaam@gmail.com) 
+   Wachtwoord: uw Gmail-wachtwoord 
+
+
+   @author Gilbert Swinkels
+   @version March 3th, 2007 14:26
+*/
+
+    import org.apache.commons.mail
+    properties constant
+    host="smtp.gmail.com"
+    account="kerkweg.herent"
+    pw="philippi"
+    port=int 465
+
+    
+    x=SimpleEmail()
+    x.setHostName(host)
+    x.setAuthentication(account,pw)
+    x.setSmtpPort(port)
+    x.addTo("gilbert.swinkels@capco.com", "Gilbert Swinkels")
+    x.setFrom("kerkweg.herent@gmail.com", "GS")
+    x.setSubject("Test message")
+    x.setMsg("This is a simple test of commons-email") 
+    x.send()
+    exit(0)
