@@ -56,6 +56,7 @@ class DrawWave adapter extends Frame implements WindowListener
     xbegin=10                                 -- pixels free at start of x-axis
     xeind=10                                  -- pixels free at end of x-axis
     maxx=maxx-xbegin-xeind
+    time=System.currentTimeMillis()
     say time
     say "number of frames:"
     iter=ask
