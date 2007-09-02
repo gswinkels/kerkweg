@@ -1,0 +1,74 @@
+/**
+@author Gilbert Swinkels
+@version August 16, 2002
+
+Message Server
+
+When the server is created it will build the Container and place
+the queues in the container. It will then set up the client connection pool
+It then listens for client connections. If so, it passes the socket to the pool
+of client connections, managed by the QueueManager class for further processing
+*/
+class MessageServer public extends Thread
+properties inheritable static
+socket=ServerSocket		--server socket
+loggingSw=boolean 0		--logging switch
+PORTNUM=int			--port listened to by server
+maxConnections=int		--number of QueueManagers in pool
+queueContainer=Hashtable()	--key is queue name, value is another hashtable
+				--key to  this this hashtable is message id, value is message 
+
+method MessageServer public
+say "Message Server starting ..."
+c = Config null
+do
+c = Config("config.xml")
+catch e=Exception         
+say "MessageServer:problem reading config.xml" e
+end
+
+PORTNUM = c.getPort() --set port number
+say "Port is " PORTNUM
+loggingSw = c.getLog() 	--set logging switch
+say "Log switch is "  loggingSw
+maxConnections = c.getmaxConnections() 	--set pool size
+say "Pool size is "  maxConnections
+
+--build queues
+queues = String[] c.getQueues()    --array of queue names coming from initialization file
+loop label gs i=0 by 1 while i<queues.length
+  queueContainer.put(queues[i], Hashtable())
+  say "Queue "  queues[i]  " has been created"
+end gs
+
+--build pool
+loop i=0 by 1 while i<maxConnections
+  qm=QueueManager(queueContainer, loggingSw)
+  Thread(qm,"QueueManager" || i).start()
+  say "thread QueueManager" || i "started"
+end
+
+--bind to server socket
+do
+socket = ServerSocket(PORTNUM)         
+say "Message Server is running"
+catch e=IOException
+say "MessageServer: could not create server socket" e
+System.exit(1)
+end
+
+method main(s=String[]) public static 
+server = MessageServer()
+server.start()			            -- start up server thread
+
+method run() public 
+loop while (1) 
+  if socket = null then return 	              --get out when not bound to server socket
+  do
+  clientSocket = socket.accept()              --listen to sever port. Create socket to client
+  QueueManager.processRequest(clientSocket)   --pass socket to Queue Manager class to process request from client
+  catch e=IOException
+  say "MessageServer:client socket error" e
+  System.exit(1)
+  end
+end

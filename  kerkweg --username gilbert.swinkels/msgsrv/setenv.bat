@@ -1,0 +1,1 @@
+set classpath=%classpath%;xalan.jar;xercesImpl.jar;serializer.jar

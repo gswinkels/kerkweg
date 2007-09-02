@@ -1,0 +1,30 @@
+12:48 19/08/2007
+
+install and boot LINUX (openSuse)
+boot switch
+check YAST2 - Network Services - Hostnames - note IP Address of Linux host
+go to YAST2 - DHCP server - Dynamic DHCP - set IP address range (first and last)
+start DHCP server
+go to YASR2 - Xinetd - start all services (includes ftp)
+
+on client: ipconfig /renew
+ping
+run cmd and got to "distribution" directory
+ftp open "host"
+user gilbert
+password $
+cd X (on host, case sensitive!)
+dir
+mput *.*
+bye
+
+on host: start terminal session
+su
+go to X
+export $CLASSPATH=.:serializer.jar:xercesImpl.jar:xalan.jar:msgsrv.jar
+java MessageServer
+
+attention: on host filenames are case sensitive!
+
+
+

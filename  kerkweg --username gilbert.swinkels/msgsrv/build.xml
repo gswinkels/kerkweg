@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<project name="NetRexx" basedir="." default="usage">
+    <property file="build.properties"/>
+    <property name="name" value="NetRexx"/>
+
+    <path id="master-classpath">
+        <fileset dir="${deploy.path}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build.dir}"/>
+    </path>
+    
+    <target name="usage">
+        <echo message=""/>
+        <echo message="${name} build file"/>
+        <echo message="-----------------------------------"/>
+        <echo message=""/>
+        <echo message="Available targets are:"/>
+        <echo message=""/>
+        <echo message="build     --> Build NetRexx source files"/>
+        <echo message="deploy    --> Deploy as a jar into mylib"/>
+        <echo message="clean     --> Delete class and crossref files"/>
+        <echo message=""/>
+
+    </target>
+
+    <target name="build" description="Compile source tree NetRexx files">
+        <mkdir dir="classes"/>
+        <netrexxc srcDir="." includes="*.nrx" 
+		destDir="classes" classpath="." 
+		comments="true" crossref="false" replace="true" keep="true"/> 
+    </target>
+
+        <target name="deploy" depends="build" description="Deploy application as a JAR file">
+        <jar destfile="gs.jar">            
+            <fileset dir="./classes">
+                <include name="**/*.class"/>
+            </fileset>
+        </jar>
+        <copy todir="${deploy.path}" preservelastmodified="true">
+            <fileset dir=".">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+		<delete><fileset dir"."><include name="gs.jar"></include></fileset></delete> 
+    </target>
+
+    <target name="clean" description="Clean output directories"> 
+      <delete> 
+         <fileset dir="./classes"> 
+            <include name="*.*"/> 
+         </fileset> 
+      </delete> 
+    </target> 
+
+</project>

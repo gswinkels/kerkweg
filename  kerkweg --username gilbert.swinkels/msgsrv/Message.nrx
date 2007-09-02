@@ -1,0 +1,264 @@
+/**
+@author Gilbert Swinkels
+@version August 13, 2002
+Message
+*/
+import org.apache.xerces.parsers.
+import org.w3c.dom.
+import org.xml.sax.
+import org.apache.xml.serialize.
+import org.apache.xerces.dom.
+ 
+class Message public
+-- trace methods
+properties private
+status = String  
+command = String   
+queueName = String   
+messageId = String   
+payload = String   
+processingRule = String
+properties constant  
+STATUS_OK = String "OK" 
+STATUS_DUPLICATE = String "DU" 
+STATUS_NOT_FOUND = String "NF" 
+STATUS_ERROR = String "ER" 
+STATUS_IO = String "IO" 
+STATUS_QUEUE_NOT_FOUND = String "QN" 
+STATUS_INVALID_COMMAND = String "IC"
+STATUS_COMMAND_NOT_ACCEPTED = String "NA"   --added
+COMMAND_PUT = String "PUT" 
+COMMAND_GET = String "GET" 
+COMMAND_DELETE = String "DEL"
+COMMAND_ADMIN = String "ADM"  --added
+COMMAND_STOP = String "STO"   --added
+waar = boolean 1
+properties private
+doc = Document
+elementMessage = Element
+elementHeader = Element 
+elementStatus = Element 
+elementCommand = Element 
+elementQueueName  = Element
+elementPayload = Element
+elementMessageId = Element
+elementProcessingRule = Element
+
+method Message() public
+doc = DocumentImpl()  
+elementMessage = doc.createElement("message")  
+elementHeader = doc.createElement("header")  
+elementStatus = doc.createElement("status")  
+elementHeader.appendChild(elementStatus)  
+elementCommand = doc.createElement("command")  
+elementHeader.appendChild(elementCommand)  
+elementQueueName = doc.createElement("queueName")  
+elementHeader.appendChild(elementQueueName) 
+elementMessageId = doc.createElement("messageId")  
+elementHeader.appendChild(elementMessageId) 
+elementProcessingRule = doc.createElement("processingRule")  
+elementHeader.appendChild(elementProcessingRule)  
+elementMessage.appendChild(elementHeader)  
+elementPayload = doc.createElement("payload")  
+elementMessage.appendChild(elementPayload) 
+doc.appendChild(elementMessage) 
+
+method Message(msg = String) public
+in = InputSource(StringReader(msg)) 
+parser = DOMParser() 
+do
+parser.parse(in) 
+catch e=Exception
+say "Message: unable to create DOM object during Message object creation" e
+end
+doc = parser.getDocument() 
+
+method getCommand() public returns String
+nl = NodeList doc.getElementsByTagName("command") 
+n = Node nl.item(0).getFirstChild() 
+if n == null then
+return "" 
+else 
+return n.getNodeValue() 
+
+method getMessageId() public returns String
+nl = NodeList doc.getElementsByTagName("messageId") 
+n = Node nl.item(0).getFirstChild() 
+if n == null then
+return "" 
+else
+return n.getNodeValue() 
+
+method getPayload() public returns String
+nl = NodeList doc.getElementsByTagName("payload") 
+n = Node nl.item(0).getFirstChild() 
+if n == null then
+return "" 
+else
+return serializeNode(n) 
+
+method getProcessingRule() public returns String
+nl = NodeList doc.getElementsByTagName("processingRule") 
+n = Node nl.item(0).getFirstChild() 
+if n == null then
+return "" 
+else
+return n.getNodeValue() 
+
+method getQueueName() public returns String
+nl = NodeList doc.getElementsByTagName("queueName") 
+n = Node nl.item(0).getFirstChild() 
+if n == null then
+return "" 
+else
+return n.getNodeValue() 
+
+method  getStatus() public returns String
+nl = NodeList doc.getElementsByTagName("status") 
+n = Node nl.item(0).getFirstChild() 
+if n == null then
+return "" 
+else
+return n.getNodeValue() 
+
+method getXMLChildElement(ParentName=String, childName=String) public returns Element 
+nlHeader = NodeList doc.getElementsByTagName(ParentName) 
+nlStatus = NodeList (Element nlHeader.item(0)).getElementsByTagName(childName) 
+return Element nlStatus.item(0) 
+
+method getXMLElement(name=String) public returns Element
+nl = NodeList doc.getElementsByTagName(name) 
+return Element nl.item(0) 
+
+method isCommand(s=String) public returns boolean
+return getCommand().equals(s) 
+
+method setCommand(c=String) public
+setHeaderElement("command", c)  
+
+method setHeaderElement(elementName=String, elementValue=String) public
+-- elementHeader = Node
+elementHeader = getXMLElement("header") 
+oldElement = Element getXMLChildElement("header", elementName) 
+elementHeader.removeChild(oldElement) 
+newElement = Element doc.createElement(elementName) 
+elementHeader.appendChild(newElement) 
+newElement.appendChild(doc.createTextNode(elementValue)) 
+
+method setMessageId(m=String) public
+setHeaderElement("messageId", m) 
+
+method setPayload(p=String) public
+p = "<message><payload>" || p || "</payload></message>" 
+--Build Payload as a Document
+in = InputSource(StringReader(p)) 
+parser = DOMParser() 
+do
+parser.parse(in)
+catch e=Exception
+say "Message:setPayload:Unable to create DOM object" e
+end
+docPayload = Document parser.getDocument() 
+elementPayload = Element docPayload.getDocumentElement() 
+--Get root of message document
+firstRoot = Element doc.getDocumentElement() 
+--Get root of payload document
+secondRoot = Element docPayload.getDocumentElement() 
+--Get the Node to move
+kids = NodeList secondRoot.getElementsByTagName("payload") 
+oneToMove = Element kids.item(0) 
+--Get the Node to replace
+kids1 = NodeList firstRoot.getElementsByTagName("payload") 
+oneToReplace = Element kids1.item(0) 
+--Replace Node in the first document
+newOneToMove = Node doc.importNode(oneToMove, waar) 
+firstRoot.replaceChild(newOneToMove, oneToReplace) 
+
+method setProcessingRule(r=String) public
+setHeaderElement("processingRule", r) 
+method setQueueName(q=String) public
+setHeaderElement("queueName", q) 
+method setStatus(s=String) public
+setHeaderElement("status", s) 
+method toString() public returns String
+return serializeDoc(doc) 
+
+method serializeDoc(dok=Document) public returns String
+sr = StringWriter null 
+do
+format = OutputFormat(dok) 
+sr = StringWriter() 
+s = XMLSerializer(sr, format) 
+s.asDOMSerializer() 
+s.serialize(dok.getDocumentElement()) 
+catch e=Exception 
+say  "Message:serializeDoc:"  e.toString()
+end
+return sr.toString() 
+
+method serializeNode(xnode=Node) public returns String
+attr = Node  	
+xml = String "" 
+type = int xnode.getNodeType() 
+
+select label gs case type
+
+-- print the document element
+when Node.DOCUMENT_NODE then
+do 
+xml = xml || serializeNode((Document xnode).getDocumentElement()) 
+end 
+
+-- print element with attributes
+when Node.ELEMENT_NODE then
+do
+  xml = xml || "<" || xnode.getNodeName() 
+  attrs = NamedNodeMap xnode.getAttributes() 
+  loop i =int 0  by 1 while i < attrs.getLength() 
+    attr = Node attrs.item(i) 
+    xml = xml || " " || attr.getNodeName() || "=\"" || attr.getNodeValue() || "\"" 
+  end
+  xml = xml || ">" 
+  children = NodeList xnode.getChildNodes() 
+  if children \= null then
+  do
+    len = int children.getLength() 
+    loop i = int 0  by 1 while i < len
+      xml = xml || serializeNode(children.item(i)) 
+    end 
+  end
+end 
+
+-- handle entity reference nodes
+when Node.ENTITY_REFERENCE_NODE then
+do
+  xml = xml || "&" || xnode.getNodeName() || " " 
+end 
+
+-- print cdata sections
+when Node.CDATA_SECTION_NODE then
+do
+  xml = xml || "<![CDATA[" || xnode.getNodeValue() || "]]>" 
+end
+
+-- print text
+when Node.TEXT_NODE then
+do
+  xml = xml || xnode.getNodeValue() 
+end
+
+-- print processing instruction
+when Node.PROCESSING_INSTRUCTION_NODE then
+do
+  xml = xml || "<?" 
+  xml = xml || xnode.getNodeName() 
+  data = String xnode.getNodeValue() 
+  xml = xml || " " 
+  xml = xml || data 
+  xml = xml || "?>" 
+end 
+
+end gs
+
+if type == Node.ELEMENT_NODE then xml = xml || "</" || xnode.getNodeName() || ">" 
+return xml

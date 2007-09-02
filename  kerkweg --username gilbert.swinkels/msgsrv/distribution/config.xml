@@ -1,0 +1,13 @@
+<?xml version="1.0"?><config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="config.xsd">
+<port>584</port>
+<log>1</log>
+<poolsize>10</poolsize>
+<queues>
+	<queue>Q0</queue>
+	<queue>Q1</queue>
+	<queue>Q2</queue>
+	<queue>Q3</queue>
+	<queue>Q4</queue>
+	<queue>Q5</queue>
+</queues>
+</config>

@@ -1,0 +1,101 @@
+class MessageServerClient public
+properties private
+command=String
+portNumber=int
+messageId=String
+payload=String
+otherHeader=String
+processingRule=String
+queueName=String
+status=String
+host=String
+reply=Message
+properties private static
+instance=MessageServerClient 
+ 
+method MessageServerClient() private
+super()
+
+method getInstance() public static protect returns MessageServerClient
+if (instance == null) then instance = MessageServerClient()
+return instance
+
+method getReplyCommand() public returns String
+return reply.getCommand()
+method getReplyMessageId() public returns String
+return reply.getMessageId()
+method getReplyPayload() public returns String
+return reply.getPayload()
+method getReplyQueueName() public returns String
+return reply.getQueueName()
+method getReplyStatus() public returns String
+return reply.getStatus()
+method getSendCommand() public returns String
+return command
+method getSendHost() public returns String
+return host
+method getSendMessageId() public returns String
+return messageId
+method getSendPayload() public returns String
+return payload
+method getSendPortNumber() public returns int
+return portNumber
+method getSendProcessingRule() public returns String
+return processingRule
+method getSendQueueName() public returns String
+return queueName
+method getSendStatus() public returns String
+return status
+
+method send() public signals IOException 
+say "here we are" host portNumber
+sckt = Socket(host, portNumber)
+say "sofar ok"
+out  = PrintWriter(sckt.getOutputStream(), boolean 1)
+say "even more so"
+in   = BufferedReader(InputStreamReader(sckt.getInputStream()))
+say "and now?"
+
+m = Message()
+m.setStatus(status)
+m.setCommand(command)
+m.setQueueName(queueName)
+m.setProcessingRule(processingRule)
+m.setMessageId(messageId)
+m.setPayload(payload)
+
+--protocol stipulates that the the message
+--length will be followed by a new line character
+--which will be followed by the message
+out.println(m.toString().length()); 
+say "um..."
+out.println(m.toString());
+
+--read server's reply
+sb = StringBuffer()
+line = String in.readLine()
+loop while line \= null
+  sb.append(line)
+  line = in.readLine()
+end
+reply = Message(sb.toString())
+out.close()
+in.close()
+sckt.close()
+
+method setSendCommand(newCommand=String) public
+command = newCommand
+method setSendHost(newHost=String) public
+host = newHost
+method setSendMessageId(newMessageId=String) public
+messageId = newMessageId
+method setSendPayload(newPayload=String) public
+payload = newPayload
+method setSendPortNumber(newPortNumber=int) public
+portNumber = newPortNumber
+method setSendProcessingRule(newProcessingRule=String) public
+processingRule = newProcessingRule
+method setSendQueueName(newQueueName=String) public
+queueName = newQueueName
+method setSendStatus(newStatus=String) public
+status = newStatus

@@ -1,0 +1,97 @@
+/**
+@author Gilbert Swinkels
+@version August 16, 2002
+
+Configuration class
+*/
+import javax.xml.transform. 
+import org.apache.xerces.parsers. 
+import org.w3c.dom. 
+import org.xml.sax. 
+import org.apache.xml.serialize. 
+import org.apache.xerces.dom. 
+import org.apache.xalan.xslt. 
+ 
+class Config public 
+properties private
+status = String null
+command = String null
+queueName = String null
+messageId = String null
+payload = String null
+processingRule = String null
+properties constant	
+STATUS_OK = String "OK" 
+STATUS_DUPLICATE = String "DU" 
+STATUS_NOT_FOUND = String "NF" 
+STATUS_ERROR = String "ER" 
+STATUS_IO = String "IO" 
+STATUS_QUEUE_NOT_FOUND = String "QN"
+STATUS_INVALID_COMMAND = String "IC"
+COMMAND_PUT = String "PUT";
+COMMAND_GET = String "GET" 
+COMMAND_DELETE = String "DEL" 
+properties private
+doc=Document
+elementMessage=Element
+elementHeader=Element 
+elementStatus=Element  
+elementCommand=Element  
+elementQueueName=Element  
+elementPayload=Element  
+elementMessageId=Element  
+elementProcessingRule=Element   
+
+method Config(fileName=String) public signals FileNotFoundException 
+fis = FileInputStream(fileName) 
+in  = InputSource(fis) 	
+parser = DOMParser() 
+do
+parser.parse(in) 
+catch e=Exception
+say "Config:Config:" + e.toString()
+end
+doc = parser.getDocument() 
+
+method getLog() public returns boolean
+s=String "1"
+nl = NodeList doc.getElementsByTagName("log") 
+n = Node nl.item(0).getFirstChild()
+if n.getNodeValue().equals(s) then
+return boolean 1 
+else
+return boolean 0 
+
+method getPort() public returns int
+nl = NodeList doc.getElementsByTagName("port") 
+n = Node nl.item(0).getFirstChild() 
+return Integer.parseInt(n.getNodeValue())
+
+method getmaxConnections() public returns int
+nl = NodeList doc.getElementsByTagName("poolsize") 
+n = Node nl.item(0).getFirstChild() 
+return Integer.parseInt(n.getNodeValue()) 
+
+method getQueues() public returns String[]
+queues=String[] 
+i=int
+nl = NodeList doc.getElementsByTagName("queue") 
+numberOfQueues = int nl.getLength() 
+queues = String[numberOfQueues] 
+loop i=0 by 1 while i < numberOfQueues
+	queues[i] = (nl.item(i).getFirstChild().getNodeValue()) 
+end
+return queues 
+
+method toString() public returns String
+sr = StringWriter null 
+do
+format = OutputFormat(doc) 
+sr = StringWriter() 
+s = XMLSerializer(sr, format) 
+s.asDOMSerializer() 
+s.serialize(doc.getDocumentElement()) 
+catch e=Exception
+say "Config:toString:1:" + e.toString()
+end
+return sr.toString()

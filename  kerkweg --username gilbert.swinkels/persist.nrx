@@ -1,0 +1,15 @@
+class persist(Rexx message)
+first=1
+	
+if first then
+do
+	try
+	do
+raf=new RandomAccessFile("gs","rw")
+first=0
+catch
+	
+	end
+end
+		
+
