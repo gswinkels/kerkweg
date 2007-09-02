@@ -1,0 +1,103 @@
+class MyClient public
+
+method MyClient() public
+super()
+
+method main(args=String[]) static public
+say "P -Put\nG -Get\nD -Delete\nA -Admin\nS -Stop\nchoose:\-"
+action=ask
+mc = MessageServerClient.getInstance()
+say "\n"
+select case action.upper
+ when "P" then mc.setSendCommand(Message.COMMAND_PUT)                  -- put message on a queue
+ when "G" then mc.setSendCommand(Message.COMMAND_GET)                  -- get message from a queue
+ when "D" then mc.setSendCommand(Message.COMMAND_DELETE)               -- delete all messages on a specific queue
+ when "A" then mc.setSendCommand(Message.COMMAND_ADMIN)                -- list all queues with their message id's and messages
+ when "S" then mc.setSendCommand(Message.COMMAND_STOP)                 -- request server stop, to be confirmed on server console
+ otherwise 
+    do
+    	say "invalid input"
+	return
+    end
+end
+say "Host IP address (default is local loop):\-"
+host=ask
+if host="" then host="169.254.0.1"
+mc.setSendHost(host)
+mc.setSendPortNumber(584)
+
+if action.upper.verify("PG","match") <> 0 then
+do 
+say "MessageID: \-"
+mc.setSendMessageId(ask)
+end
+else
+mc.setSendMessageID("")
+
+if action.upper = "P" then
+-- get payload from file
+do
+ say "file in: \-"
+ file=ask
+ if file="" then file="in.txt"
+ source=BufferedReader(FileReader(file))
+ textline = String ""
+ buffer = String ""
+ loop forever
+  textline=source.Readline()
+  if textline = null then leave
+  buffer = buffer || textline
+ end
+ mc.setSendPayload(buffer)
+end
+else
+mc.setSendPayload("")
+
+if action.upper = "G" then
+do
+say "Processing Rule: \-"
+mc.setSendProcessingRule(ask)
+end
+else
+mc.setSendProcessingRule("")
+
+if action.upper.verify("AS","match") = 0 then
+do
+say "Queue: \-"
+mc.setSendQueueName(ask)
+end
+else
+mc.setSendQueueName("")
+
+mc.setSendStatus(Message.STATUS_OK)
+	
+do
+mc.send()
+say "-----send------"
+say "send messageId:" mc.getSendMessageId()
+say "send command..:" mc.getSendCommand()
+say "send status...:" mc.getSendStatus()
+say "send payload..:" mc.getSendPayload()
+say "send queueName:" mc.getSendQueueName()
+say ""
+say "-----reply-----"
+say "reply messageId:" mc.getReplyMessageId()
+say "reply command..:" mc.getReplyCommand()
+say "reply status...:" mc.getReplyStatus()
+say "reply payload..:" mc.getReplyPayload()
+say "reply queueName:" mc.getReplyQueueName()
+if mc.getReplyPayload() \= "" then
+do
+say "file out: \-"
+file=ask
+if file = "" then file="out.txt"
+dest=BufferedWriter(FileWriter(file))
+buffer = String mc.getReplyPayload()
+dest.write(buffer,0,buffer.length())
+dest.close
+end
+catch e1=IOException
+ if action.upper <> "S" then say "MyClient Error: IO Exception" e1.toString()
+-- catch e2=Exception
+--  say "MyClient Error:" e2.toString()
+end

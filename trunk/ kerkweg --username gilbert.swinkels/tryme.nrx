@@ -1,0 +1,55 @@
+/* tryme.nrx - Part of RXFile, Max Marsiglietti 1996, 97 */
+
+import nrio.RXFile
+
+rArray = Rexx[] null
+iCount = int 0
+bExit = boolean 0
+RXIt = RXFile null
+bSepCurs = boolean 1
+bRN = boolean 1
+
+
+RXIt = RXFile()
+say RXIt.setparms(bSepCurs, bRN)
+
+say 'Opening: ' RXIt.stream('tryme.nrx','c','open')
+say 'Status: 'RXIt.stream('d')
+say 'Seeking at +0 brings: 'RXIt.stream('c','seek +0')
+say 'Seeking at =5 brings: 'RXIt.stream('c','seek =5')
+say 'Seeking at +10 brings: 'RXIt.stream('c','seek +10')
+say 'Seeking at +0 brings: 'RXIt.stream('c','seek +0')
+
+say 'Query exists: 'RXIt.stream('c','query exists')
+say 'Query size: 'RXIt.stream('c','query size')
+say 'Query datetime: 'RXIt.stream('c','query datetime')
+
+say 'Seeking at <0 brings: 'RXIt.stream('c','seek <0')
+say 'Seeking at -10 brings: 'RXIt.stream('c','seek -10')
+
+say 'R-seeking at =20 brings: 'RXIt.stream('c','rseek =20')
+say 'R-seeking at +7 brings: 'RXIt.stream('c','rseek +7')
+
+say 'W-seeking at -10 brings: 'RXIt.stream('c','wseek -10')
+say 'W-seeking at +2 brings: 'RXIt.stream('c','wseek +2')
+say 'Length: 'RXIt.lines
+
+say 'Status: 'RXIt.stream('d')
+say 'Closing: 'RXIt.stream('c','close')
+say 'Status: 'RXIt.stream('d')
+
+say 'Trying to seek: 'RXIt.stream('c','seek +0')
+
+RXIt.charout("Type a word and press enter: >")
+say 'You typed, as first letter: '||RXIt.charin()
+say RXIt.chars()||' chars remaining in the queue.' 
+say "(Warning: This one doesn't return correct values with stdio..)"
+
+RXIt.lineout("This one is .lineout with standard output. Watch for filetree:")
+rArray = RXIt.filetree(".")
+loop until bExit = 1
+ say rArray[iCount]
+ iCount = iCount + 1
+catch AIOOBE=ArrayIndexOutOfBoundsException
+ bExit = 1
+end

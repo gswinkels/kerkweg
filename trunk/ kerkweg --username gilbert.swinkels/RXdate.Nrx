@@ -1,0 +1,503 @@
+/* Title 'RXDATE - Implement A NetRexx Date object             '*/
+/*.                                                          */
+/* RXDate Version 1.00                                       */
+/*                                                           */
+/* This class implements the classic Rexx date               */
+/* formats for NetRexx and Java with some extensions.        */
+/*                                                           */
+/* Caveat: This code is being supplied "as is". No           */
+/* warrantee is implied, or intended. Use at your            */
+/* own risk.                                                 */
+/*                                                           */
+/* However, if you find any bugs, please let me know.        */
+/*                                                           */
+/* Initial Version 19970106 RJK                              */
+/* Some Clean Up   19970109-19970111 RJK                     */
+/* Base() enhance  19970112 RJK (make faster for current     */
+/*                               dates)                      */
+/* AddConstructor  19970114 RJK Allow Rexx Type Dates for I/P*/
+/*                                                           */
+/* Note: This class also implements "long" formats of        */
+/* date.USA, Date.European, and Date.Ordered as well as      */
+/* Julian and LongJulian formats. The "long" format returns  */
+/* a 4 digit year.                                           */
+/*                                                           */
+/* Note:                                                     */
+/* On my system RXdate has been placed in the following      */
+/* subdirectory:                                             */
+/*                                                           */
+/* c:\javaos2\classes\utilities\netrexx                      */
+/*                                                           */
+/* thus requiring the import statement in a program:         */
+/*                                                           */
+/* import utilities.netrexx.RXdate                           */
+/*.                                                          */
+-- package utilities.netrexx
+class RXdate public
+properties
+Tauthor = 'Bob Keller '
+TClassDate = '19970114' -- Last Updated
+TVersion = '1.00'
+TSupport = 'None ; As Is -- Use at your own risk'
+TDescription = 'Returns the date in Various Classic Rexx Formats'
+/*                                                           */
+/* Some useful Variables that are loaded by constructors     */
+/*                                                           */
+TDate = ' '
+Tyear = ' '
+TDay = ' '
+TMonth = ' '
+TLocalTime = ' '  -- forced to local time
+TLocalZone = ' '  -- forced to local zone
+TwordMonth = ' '  -- Used To Hold Month Jan, Feb etc.
+TMonthDays = '31 28 31 30 31 30 31 31 30 31 30 31'  -- normal year
+XMonthDays = '31 29 31 30 31 30 31 31 30 31 30 31'  -- Leap Year
+DaysThisYear = 0
+/*.                                                          */
+/* Base() takes a long time to increment-decrement from      */
+/* 1900 so ...                                               */
+/*.                                                          */
+TBaseDate = ''      -- This object stores the Base() date here
+                    -- after the first call to Base()
+Base1900 = 693595      -- These are for performance
+Base1970 = 719162      -- All are Jan 1, yyyy
+Base1990 = 726467
+Base2000 = 730119
+StartDays = Base1900
+StartYear = 1900
+/*.                                                          */
+/* Standard Constructors - default is today or you can       */
+/* pass a valid Date object to the second constructor        */
+/*.                                                          */
+/*.                                                          */
+/* Default Constructor -- Use A Date() object from today     */
+/*                                                           */
+/* Example:                                                  */
+/*                                                           */
+/* TDate = RXdate() -- Uses today                            */
+/*.                                                          */
+method RXdate() public
+   super()
+   TDate = Rexx Date()   -- default -- Uses today
+   SetInfo()
+   return this.ToString()
+/*.                                                          */
+/* You may also pass the desired date in YYYY, MM, DD        */
+/* format.                                                   */
+/*                                                           */
+/* Example:                                                  */
+/*                                                           */
+/* Tdate = RXdate(1997,01,01)                                */
+/*.                                                          */
+method RXdate(Year = Rexx, Month = Rexx, Day = Rexx) signals IllegalArgumentException
+   -- construct a Rexx Date varb similar to Date()
+   super()
+   TYear = Year
+   TMonth = Month
+   TDay = Day
+   if TYear.length() \= 4 then signal IllegalArgumentException
+   if IsValidMonth() = 0  then signal IllegalArgumentException
+   If IsValidDay() = 0 then signal IllegalArgumentException
+   SMonth = CVTNumber2Month()   -- uses TMonth
+   DayOfWeek = GetDayOfWeek()
+   parse Date() . . . lcltime lclzone . -- Get Current Time
+   TLocalTime = lcltime
+   TLocalZone = lclzone
+   TDate = DayOFWeek SMonth Day lcltime lclzone TYear
+   return This.ToString()
+/*.                                                          */
+/* Builds a date in RXdate formats                           */
+/*     Supports B,E,N,O,S,U and J formats                    */
+/* Usage:                                                    */
+/* Tdate = RXdate(729037,'B')                                */
+/*                                                           */
+/* Note: Assumes user knows what they are doing !!!          */
+/* No Error Correction so if a bad date is passed            */
+/* results will be unpredictable.                            */
+/*.                                                          */
+method RXdate(IDate=Rexx, IType=Rexx) public signals IllegalArgumentException
+super()
+itype = itype.substr(1,1).upper()
+select
+   when IType = 'B' then do
+       Idate = IDate + 1    -- Make the number of days match "today"
+       CVTBase2Year(IDate)
+       CVTDays2Month()
+       CVTYDays2MDays()
+   end
+   when IType = 'E' then do
+       Parse IDate TDay'/'TMonth'/'TYear
+       if TYear <= '50' then TYear = '20'TYear
+           else TYear = '19'TYear
+   end
+   when IType = 'O' then do
+       parse idate TYear'/'TMonth'/'Tday
+       if TYear <= '50' then TYear = '20'TYear
+           else TYear = '19'TYear
+   end
+   when IType = 'S' then do
+       parse IDate Tyear 5 TMonth 7 Tday
+   end
+   when ITYpe = 'U' then do
+       Parse Idate TMonth'/'TDay'/'TYear
+       if TYear <= '50' then TYear = '20'TYear
+           else TYear = '19'TYear
+   end
+   when IType = 'J' then do
+       parse IDate Tyear 3 Days
+       DaysThisYear = Days
+       CVTDays2MOnth()
+       CVTYDays2MDays()
+   end
+   when IType = 'N' then do
+       Parse Idate TDay TWordMonth TYear
+       TMonth =  CVTMonth2Number()
+   end
+   otherwise signal IllegalArgumentException
+end
+-- Build TDate Variable
+   if TYear.length() \= 4 then signal IllegalArgumentException
+   if IsValidMonth() = 0  then signal IllegalArgumentException
+   If IsValidDay() = 0 then signal IllegalArgumentException
+   SMonth = CVTNumber2Month()   -- uses TMonth
+   DayOfWeek = GetDayOfWeek()
+   parse Date() . . . lcltime lclzone . -- Get Current Time
+   TLocalTime = lcltime
+   TLocalZone = lclzone
+   TDate = DayOFWeek SMonth TDay lcltime lclzone TYear
+   return This.ToString()
+/*.                                                          */
+/* SetInfo -- Used by default constructor to parse date      */
+/* info                                                      */
+/*.                                                          */
+method SetInfo()
+   parse TDate . TWOrdMonth TDay TLocalTime TLocalZone TYear
+   TMonth = CVTMonth2Number()
+   TBaseDate = Base()  -- Place Overhead in constructor
+/*.                                                          */
+/* Return Base Date   1900 is the start-date/number by       */
+/* default.                                                  */
+/*                                                           */
+/* TBaseDate is set with the first call to  Base()           */
+/* Subsequent calls to Base() use the stored value.          */
+/*.                                                          */
+method Base() public
+   if TBaseDate.length() \= 0 then return TBaseDate
+   TDays = StartDays
+   if TYear <= 1000 then do
+      StartYear = 0001
+      TDays = 0
+   end
+   if TYear >= 1970 then do
+       StartYear = 1970
+       TDays = Base1970
+   end
+   if TYear >= 1990 then do
+       StartYear = 1990
+       TDays = Base1990
+   end
+   if TYear >= 2000 then do
+       StartYear = 2000
+       Tdays = Base2000
+   end
+   select
+       when TYear <= StartYear then do -- decrements from yyyy by year
+           loop i = StartYear To (TYear+1) By -1
+               TDays = TDays - 365
+               if IsCentury(i) then Do
+                  if IsLeapCentury(i) then TDays = TDays -1
+               end
+               else If IsLeapYear(i) then TDays = TDays - 1
+           end
+       end
+      otherwise do    -- increments from yyyy to present
+         loop i = StartYear To (TYear-1)
+            TDays =  TDays + 365
+             if IsCentury(i) then do
+                 if IsLeapCentury(i) then TDays = TDays + 1
+             end
+             else if IsLeapYear(i) then TDays = TDays + 1
+         end
+      end
+   end
+   TBaseDate = Tdays + (Days()-1)
+   if TBaseDate <= 0 then TbaseDate = 1 -- See Rexx Language pg.92
+                                        -- ISBN 0-13-779067-8
+   return TBaseDate
+/*.                                                          */
+/* Returns Days this current Year -- no leading 0's          */
+/*.                                                          */
+method Days() public
+SetTMonthDays()
+   tdThisYear = 0
+   Today = Standard()   -- 19970102
+   XMonth = today.substr(5,2)
+   select
+       when XMonth = '01' then do
+           return Today.substr(7,2) + 0 -- strip off leading 0's
+       end
+       otherwise do
+           TdThisYear = 0
+           loop i = 1 to Xmonth-1
+               TDThisYear = TdThisYear + TMonthDays.word(i)
+           end
+           TDThisYear = TDThisYear + Today.substr(7,2)
+       end
+   end
+return TDThisYear
+/*.                                                          */
+/* Returns YYDDD (Julian format)                             */
+/*.                                                          */
+method Julian() public
+  return Tyear.substr(3,2)||Days().right(3,'0')
+/*.                                                          */
+/* LongJulian -- Returns YYYYddd                             */
+/*                                                           */
+/*.                                                          */
+method LongJulian() public
+   return TYear||Days().right(3,'0')
+/*.                                                          */
+/* Returns the fully qualified month                         */
+/*.                                                          */
+method Month() public signals IllegalArgumentException
+   Tw = TwordMonth.Upper()
+   select
+       when Tw = 'JAN' then return 'January'
+       when Tw = 'FEB' then return 'February'
+       when Tw = 'MAR' then return 'March'
+       when Tw = 'APR' then return 'April'
+       when Tw = 'MAY' then return 'May'
+       when Tw = 'JUN' then return 'June'
+       when tw = 'JUL' then return 'July'
+       when tw = 'AUG' then return 'August'
+       when tw = 'SEP' then return 'September'
+       when tw = 'OCT' then return 'October'
+       when tw = 'NOV' then return 'November'
+       when tw = 'DEC' then return 'December'
+       otherwise signal IllegalArgumentException
+   end
+/*.                                                          */
+/* Returns Normalized Date (dd mmm yyyy)                     */
+/*.                                                          */
+method Normal() public
+   return TDate.word(3) Tdate.word(2) Tdate.word(Tdate.words())
+/*.                                                          */
+/* Returns Standard Date Format (yyyymmdd)                   */
+/*.                                                          */
+method Standard() public
+   return TYear||TMonth||Tday
+/*.                                                          */
+/* Returns USA format MM/DD/YY                               */
+/*.                                                          */
+method USA() public
+   return TMonth'/'TDay'/'TYear.substr(3,2)
+/*.                                                          */
+/* Returns USA Format MM/DD/YYYY                             */
+/*.                                                          */
+method LongUSA() public
+   return TMonth'/'Tday'/'TYear
+/*.                                                          */
+/* Returns European Format DD/MM/YY                          */
+/*.                                                          */
+method European() public
+   return Tday'/'TMonth'/'TYear.substr(3,2)
+/*.                                                          */
+/* Returns DD/MM/YYYY                                        */
+/*.                                                          */
+method LongEuropean() public
+   return TDay'/'TMonth'/'TYear
+/*.                                                          */
+/* Ordered YY/MM/DD                                          */
+/*.                                                          */
+method Ordered() public
+   return TYear.substr(3,2)'/'TMonth'/'Tday
+/*.                                                          */
+/* LongOrdered YYYY/MM/DD                                    */
+/*.                                                          */
+method LongOrdered() public
+   return TYear'/'TMonth'/'Tday
+/*.                                                          */
+/* Weekday -- Returns the day of the Week (Monday)           */
+/*.                                                          */
+method WeekDay() public signals IllegalArgumentException
+TWDay = TDate.word(1)
+Tchk = TWDay.upper()
+select
+   when Tchk = 'MON' then return 'Monday'
+   when Tchk = 'TUE' then return 'Tuesday'
+   when Tchk = 'WED' then return 'Wednesday'
+   when Tchk = 'THU' then return 'Thursday'
+   when Tchk = 'FRI' then return 'Friday'
+   when Tchk = 'SAT' then return 'Saturday'
+   when Tchk = 'SUN' then return 'Sunday'
+   otherwise signal IllegalArgumentException
+end
+/*.                                                          */
+/* Utility Methods                                           */
+/*.                                                          */
+/*.                                                          */
+/* Convert Month Name to a Number (1-12)                     */
+/*.                                                          */
+method CVTMonth2Number()
+TWMonth = TWordMonth.upper()
+months = 'JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'
+TMonth = months.wordpos(TWMonth)
+return TMonth.right(2,'0')
+/*.                                                          */
+/* Converts A Month Number 1-12 To Name                      */
+/* The exception shouldn't happen here                       */
+/*.                                                          */
+method CVTNumber2Month() signals IllegalArgumentException
+months = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'
+if TMonth <= 0 then signal IllegalArgumentException
+TwordMonth = months.word(TMonth)
+return TWordMonth
+/*.                                                          */
+/* Converts A Base Date To A Year -- Pre-Req for             */
+/* Days2Month if DaysThisYear hasn't been filled in          */
+/*.                                                          */
+method CVTBase2Year(T = Rexx)
+TStartDays = Base1990
+TYear = 1990
+if T < TStartDays then do
+   TStartDays = Base1900
+   TYear = '1900'
+end
+if T < TStartDays then do
+   TStartDays = 0
+   TYear = 0
+end
+loop Forever
+   If T - TStartDays <= 365 then leave
+   TStartDays = TStartDays + 365
+   if isLeapYear() then TStartDays = TStartDays + 1
+   TYear = TYear + 1
+end
+DaysThisYear = T - TStartDays    -- Needed elsewhere perhaps
+/*.                                                          */
+/* Convert Days This Year To A Month This Year               */
+/*.                                                          */
+method CVTDays2Month()
+if DaysThisYear = '' then do
+   say 'CVTBase2Year Must Be Executed First '
+   exit 255
+end
+Twk = 0
+SetTMOnthDays()   -- just in case
+loop i = 1 to TMonthDays.words()
+   Twk = Twk + TMonthDays.word(i)
+   if DaysThisYear <= Twk then leave
+end
+TMonth = i.right(2,'0')
+/*.                                                          */
+/* Converts Days This Year to Days In Month                  */
+/*.                                                          */
+method CVTYDays2MDays()
+T = 0
+loop i = 1 to TMonth-1
+   T = T + TMOnthDays.word(i)
+end
+TDays = DaysThisYear - T
+if TDays = 0 then TDays = 1
+TDay = TDays.right(2,'0')
+/*.                                                          */
+/* Returns 1 if the day is valid for the month               */
+/*.                                                          */
+method SetTMonthDays()
+If IsCentury() then do
+   if isLeapCentury() then TMOnthDays = XMonthDays
+end
+   else if IsLeapYear() then TMonthDays = XMonthDays
+method IsValidDay()
+SetTMonthDays()
+TDaysForTheMonth = TMonthdays.word(TMonth)
+select
+   when TDay < 1 then return 0
+   when TDay > TDaysForTheMonth then return 0
+   otherwise return 1
+end
+/*.                                                          */
+/* Returns 1 if the month is valid                           */
+/*.                                                          */
+method IsValidMonth()
+   if CVTNumber2Month() = ' ' then return 0
+       else return 1
+/*.                                                          */
+/* LeapYear and LeapCentury checks                           */
+/*.                                                          */
+method IsLeapYear() public returns boolean
+   TLYear = TYear / 4
+   if TLYear.pos('.') = 0 then return boolean 1
+          else return boolean 0
+method IsLeapYear(CkYear = Rexx) public returns boolean
+   TLYear = CkYear / 4
+   if TLYear.pos('.') = 0 then return boolean 1
+          else return boolean 0
+method IsCentury() public returns boolean
+   TCYear = TYear / 100
+   if TCYear.pos('.') = 0 then return boolean 1
+       else return boolean 0
+method IsCentury(CYear = Rexx) public returns boolean
+   TCYear = CYear / 100
+   if TCYear.pos('.') = 0 then return boolean 1
+       else return boolean 0
+method IsLeapCentury() public returns boolean
+   TCYear = TYear / 400
+   if TCYear.pos('.') = 0 then return boolean 1
+       else return boolean 0
+method IsLeapCentury(CkYear = Rexx) public returns boolean
+   TCYear = CkYear / 400
+   if TCYear.pos('.') = 0 then return boolean 1
+       else return boolean 0
+/*.                                                          */
+/* Returns Java Date (if It is valid) -- Anything Earlier    */
+/* than Jan 1, 1970 is Invalid on my system                  */
+/*.                                                          */
+method ToJavaDate() public returns Date signals IllegalArgumentException
+   Work_Year = TYear.substr(3,2)
+-- Get Current Time
+   parse TLocalTime hrs':'min':'sec
+do
+       JavaDate = Date(work_year, TMonth-1, Tday, hrs, min, sec)
+   catch IllegalArgumentException
+       say 'Date Out Of Range For Java'
+       exit 24
+end
+return JavaDate
+/*.                                                          */
+/* Returns The Input String as a Java String                 */
+/*.                                                          */
+method ToJavaString() public returns String
+    return string Tdate
+/*.                                                          */
+/* Returns The Day of Week converted from Base()             */
+/*.                                                          */
+method GetDayOfWeek() public
+TDayN = Base() // 7
+select
+    when TDayn = 0 then DayOfWeek = 'Mon'
+    when TDayn = 1 then DayOfWeek = 'Tue'
+    when TDayn = 2 then DayOfWeek = 'Wed'
+    when TDayn = 3 then DayOfWeek = 'Thu'
+    when TDayn = 4 then DayOfWeek = 'Fri'
+    when TDayn = 5 then DayOfWeek = 'Sat'
+    otherwise DayOfWeek = 'Sun'
+end
+return DayOfWeek
+/*.                                                          */
+/* Returns Normal() date info as a Java String when the      */
+/* class is constructed                                      */
+/*.                                                          */
+method ToString() public returns string
+   return Normal()
+method ToString(T) public returns  String
+T = T.Upper()
+select
+   when T = 'S' then return Standard()
+   when T = 'E' then return European()
+   when T = 'O' then return Ordered()
+   when T = 'U' then return USA()
+   otherwise nop
+end
+return Normal()
+

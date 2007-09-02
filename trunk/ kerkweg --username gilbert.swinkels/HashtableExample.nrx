@@ -1,0 +1,9 @@
+s1="xxxxxxxxxxxxxxxx"
+s2="x1x2x3x4x5x6x7x8"
+say s1.hashCode()
+say s2.hashCode()
+h= new Hashtable()
+h.put(s1, new Integer(1))
+h.put(s2, new Integer(2));
+say h.get(s1))
+say h.get(s2))

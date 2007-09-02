@@ -1,0 +1,266 @@
+/**
+@author Gilbert Swinkels
+@version August 16, 2002
+
+Queue Manager
+
+The client socket is added  to the pool. All Queue Manager threads are notified.
+The first free one picks up the socket... and the work. The socket is read into a string.
+The string is used to build a message object. The message object is interrogated to obtain the method. 
+The Queue Manager then processes the appropriate method by adding/removing
+an object to/from the queue. If the GET or ADMIN method was invoked, the Queue manager
+is responsible for transmitting back to the client. The socket is closed.
+*/
+import org.apache.xerces.parsers.
+import org.w3c.dom.
+import org.xml.sax.
+import org.apache.xml.serialize.
+import org.apache.xerces.dom.
+import org.apache.xalan.xslt.
+
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.Transformer
+import javax.xml.transform.stream.StreamSource
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.TransformerException
+import javax.xml.transform.TransformerConfigurationException
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.dom.DOMResult
+
+class QueueManager public implements Runnable
+properties static
+pool=LinkedList()
+properties private 
+MySocket=Socket
+queue=Hashtable
+MyQueueContainer=Hashtable
+isLogging = boolean 
+status=String
+properties private transient
+in=BufferedReader 
+out=OutputStream
+		
+method QueueManager(qc=Hashtable, loggingSw=boolean 0)
+/**
+@param qc QueueContainer
+@param loggingSw logging switch
+@return none
+@exception none
+@see none
+*/
+isLogging = loggingSw
+this.MyQueueContainer = qc
+
+method processRequest(requestToHandle=Socket) static
+do protect pool
+pool.add(pool.size(), requestToHandle)
+pool.notifyAll()
+end
+		
+method get(m=Message) public protect returns Message
+status = Message.STATUS_OK
+qm = Message queue.get(m.getMessageId())
+if m.getProcessingRule() \= "" & qm \= null then  -- apply client requested transformation rule
+do
+  qm = Message(xslTransformation(qm.toString(), m.getProcessingRule()))
+  catch e=Exception 
+  say "QueueManager: error in getting the message from the queue "  e.toString()
+end
+log("QueueManager: retrieved" m.getMessageId() "from" m.getQueueName() "queue")
+return qm
+
+method log(s=String) public 
+if (isLogging == 1) then say s
+
+method purge(m=Message) private  
+status = Message.STATUS_OK
+i = int queue.size()
+queue.clear()
+log("QueueManager: purged all (" i ") messages from" m.getQueueName() "queue")
+
+method put(m=Message) private protect 
+if queue.get(m.getMessageId()) == null then
+do
+  status = Message.STATUS_OK
+  queue.put(m.getMessageId(), m)
+  log("QueueManager: added" m.getMessageId() "to" m.getQueueName() "queue")
+end
+else
+do
+  status = Message.STATUS_DUPLICATE
+  log("QueueManager: duplicate" m.getMessageId() "to" m.getQueueName() "queue")
+end
+
+method readSocket() private returns String signals IOException
+line = in.readLine()    --first line contains the message length
+headerMessageLength = int Integer.parseInt(line)
+sb = StringBuffer()     --read lines from socket until the entire message length has been read
+incrementalMessageLength = int 0
+line = in.readLine()
+incrementalMessageLength = incrementalMessageLength + line.length() + 1  
+sb.append(line)
+loop while incrementalMessageLength < headerMessageLength
+  line = in.readLine()
+  incrementalMessageLength = incrementalMessageLength + line.length() + 1  --add 1 for new line char
+  sb.append(line)
+end
+return sb.toString()
+
+method remove(m=Message)private protect
+status = Message.STATUS_OK
+queue.remove(m.getMessageId())
+log("QueueManager: removed" m.getMessageId() "from" m.getQueueName() "queue")
+
+method run() public
+loop label gs while(1)
+  do protect pool
+    loop while (pool.isEmpty())
+      pool.wait
+      catch ie=InterruptedException
+      say "qm: interrupted" ie.toString()
+    end
+    MySocket=Socket pool.remove(0)
+  end
+  do
+    in  = BufferedReader(InputStreamReader(MySocket.getInputStream()))  --in and out streams (from client)
+    out = MySocket.getOutputStream()
+    catch e=Exception
+    status = Message.STATUS_IO
+    say "QueueManager: I/O exception on client socket" e.getMessage()
+  end
+  msg = String readSocket()
+  inboundMessage = Message(msg)
+  if inboundMessage.isCommand(Message.COMMAND_STOP) then
+  do
+    outboundMessage = Message()
+    say "stop command issued - confirm yes/no : "
+    confirmation=ask
+    if confirmation.upper <> "YES" then
+    do
+      say "stop command rejected"
+      outboundMessage.setStatus(Message.STATUS_COMMAND_NOT_ACCEPTED)
+      writeSocket(outboundMessage.toString())
+    end
+    else
+    do
+      say "stop command accepted"
+      outboundMessage.setStatus(Message.STATUS_OK)
+      writeSocket(outboundMessage.toString())
+      System.exit(1)
+    end
+  end
+  else
+  if inboundMessage.isCommand(Message.COMMAND_ADMIN) then
+  do
+    outboundMessage = Message()
+    sb = String ""
+    loop key1 over MyQueueContainer
+      sb = sb key1 || "\n"
+      queue = Hashtable MyQueueContainer.get(key1)
+      loop key2 over queue
+        sb = sb key2 || "\n"
+        sh = Rexx Message(queue.get(key2).toString()).getPayload()
+        -- say sh.countstr("\n") sh.countstr("\t") sh.countstr("\r")
+        sh = sh.changestr("<"," ")    -- unresolved problem...
+        sh = sh.changestr(">"," ")
+        sb = sb sh
+        -- say queue.get(key2).toString
+        -- aMessage = Message(queue.get(key2).toString)
+      end
+    end 
+    outboundMessage.setPayload(sb)
+    outboundMessage.setStatus(Message.STATUS_OK)
+    writeSocket(outboundMessage.toString())
+  end
+  else
+    queue = Hashtable MyQueueContainer.get(inboundMessage.getQueueName())  -- find the correct queue in the container
+    if (queue == null) then
+    do
+      outboundMessage = Message()
+      outboundMessage.setStatus(Message.STATUS_QUEUE_NOT_FOUND)
+      writeSocket(outboundMessage.toString())
+    end
+    else
+      if inboundMessage.isCommand(Message.COMMAND_PUT) then   -- put message on queue
+      do
+        put(inboundMessage)
+        outboundMessage = Message()
+        outboundMessage.setStatus(status)
+        writeSocket(outboundMessage.toString())
+      end
+      else      -- get message from queue and remove it 
+        if inboundMessage.isCommand(Message.COMMAND_GET) then
+        do
+          outboundMessage = Message get(inboundMessage)
+          if outboundMessage == null then
+          do
+            outboundMessage = Message()
+            outboundMessage.setStatus(Message.STATUS_NOT_FOUND)
+          end
+          else
+          do
+            outboundMessage.setStatus(status)
+            remove(inboundMessage)
+          end
+          writeSocket(outboundMessage.toString())
+        end
+        else
+          if inboundMessage.isCommand(Message.COMMAND_DELETE) then  -- purge the queue
+          do
+            purge(inboundMessage)
+            outboundMessage = Message()
+            outboundMessage.setStatus(status)
+            writeSocket(outboundMessage.toString())
+          end
+          else 
+            do           --invalid command
+              outboundMessage = Message()
+              outboundMessage.setStatus(Message.STATUS_INVALID_COMMAND)
+              writeSocket(outboundMessage.toString())
+            end
+MySocket.close()
+catch e=Exception
+say "QueueManager:run:" e.toString()
+end gs
+
+method writeSocket(msg=String) private
+do
+b = byte[] msg.getBytes()
+out.write(b)
+catch e=Exception
+say "QueueManager: unable to write to socket" e.toString()
+end
+
+
+method xslTransformation(msg=String, rule=String) private returns String signals TransformerException, -
+             TransformerConfigurationException, FileNotFoundException, IOException
+insource =  InputSource(StringReader(msg))
+dp =  DOMParser()
+-- build DOM object
+do
+dp.parse(insource)
+catch e=Exception
+say "QueueManager:xslTransformation:1:"   e.toString()
+end
+
+docInput = Document dp.getDocument()
+ds = DOMSource DOMSource(docInput.getDocumentElement())
+dr = DOMResult DOMResult()  
+tFactory = TransformerFactory TransformerFactory.newInstance()
+tformer = Transformer tFactory.newTransformer(StreamSource(rule || ".xsl"))
+tformer.transform(ds, dr)
+
+docTransform = Document dr.getNode()
+
+sr = StringWriter null
+do
+of = OutputFormat OutputFormat(docTransform)
+sr = StringWriter()
+s = XMLSerializer  XMLSerializer(sr, of)
+s.asDOMSerializer()
+s.serialize(docTransform.getDocumentElement())
+catch e=Exception
+say "QueueManager:xslTransformation:2:"   e.toString()
+end
+log("QueueManager: XSLT performed")
+return sr.toString()

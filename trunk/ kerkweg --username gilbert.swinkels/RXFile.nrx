@@ -1,0 +1,2003 @@
+/* RXFile class for NetRexx - 1.19 */
+
+options binary nocrossref
+
+package nrio
+
+class RXFile
+
+properties private
+ rVersion = Rexx "RXFile 1.19, @ Copyright Max Marsiglietti 1996-98"
+ iLastErr = int                                /* last error message */
+ lWriteCurs = long 1                           /* WRITE cursor */
+ lReadCurs = long 1                            /* READ cursor */
+ 
+ /* Warning: a '-1' on read or write cursors means
+    that the file was not opened for that access mode.
+    A '-2' means that we are using one cursor only, and the
+    good cursor is the other. */
+
+
+ bLastWasRead = boolean 1                      /* Was last operation a 'READ' ? */
+ bRWCurs = boolean 0                           /* Are there separate cursors for r and w? */
+ rName = Rexx null                             /* The file name */
+ rafStream = RandomAccessFile null             /* The file stream */
+
+ disConsoleIn = BufferedReader null           /* For console I/O */
+ dosConsoleOut = DataOutputStream null           /* For console I/O */
+
+ cNLn = char '\n'
+ cNLr = char '\r'
+ r13 = Rexx "13".d2c
+ rNLine = Rexx null
+ iNLRN = int 1
+ stemCursor = Rexx null
+
+ -- Commonly used variables
+
+ rReady = "READY:"
+ rCommand = "c"
+ rOpen = "open"
+ rSeekAtZero = "seek =0"
+ rRSeekAtZero = "rseek =0"
+ rNumeric = "N"
+ rWSeekAt = "wseek ="
+ rSeekAt = "seek ="
+ rEqual = Rexx '='
+ rPlus = Rexx '+'
+ rMinus = Rexx '-'
+ rLess = Rexx '<'
+ rS = Rexx 'S'
+ rR = Rexx 'R'
+ rW = Rexx 'W'
+ rO = Rexx 'O'
+ rQ = Rexx 'Q'
+ rC = Rexx 'C'
+ rRead = Rexx 'READ'
+ rWrite = Rexx 'WRITE'
+ rSize = Rexx 'SIZE'
+ rExists = Rexx 'EXISTS'
+ rDateTime = Rexx 'DATETIME'
+ rQuerySize = Rexx "Query Size"
+
+
+
+method charout(rToWrite = Rexx) returns Rexx
+ sConvert = String
+ rReturn = Rexx null
+
+ if rToWrite=null then return Err(0,1)
+
+ if rafStream=null then do
+  dosConsoleOut.writeBytes(rToWrite)
+  dosConsoleOut.flush()
+  return Err(0,1)
+ catch IOException
+  return Err(7,1)
+ end
+ else
+ do
+   /* It is really charout(parm1, parm2) from now on */
+   if lWriteCurs = -1 then return Err(7,1)
+  
+   if lReadCurs \= -1 then do
+    rReturn=synch(0)
+    if rReturn\= rReady then return rReturn
+   end
+   sConvert = rToWrite
+  
+   do
+    rafStream.writeBytes(sConvert)
+    if bRWCurs=1 then lWriteCurs = lWriteCurs + sConvert.length
+    else
+    do
+     if lWriteCurs=-2 then lReadCurs = lReadCurs + sConvert.length
+     else lWriteCurs = lWriteCurs + sConvert.length
+    end 
+    bLastWasRead=0
+   catch IOException
+    do
+    rafStream.close()
+    rafStream = null
+    return Err(2,1)
+    catch IOException
+     rafStream = null
+     return Err(2,1)
+    end
+   end
+   return Err(0,1)
+ end
+
+
+
+method version returns Rexx
+ return rVersion
+
+
+
+method move(rSource = Rexx, rTarget = Rexx) returns Rexx
+ rRet = Rexx
+
+ rRet = copy(rSource, rTarget)
+ if rRet \= rReady then return rRet
+
+ rRet = delete(rSource)
+ if rRet \= rReady then return rRet
+
+ return Err(0, 1)
+
+
+
+method copy(rSource = Rexx, rTarget = Rexx) returns Rexx
+ iLung = int
+ iChunks = int
+ rxS = RXFile()
+ rxT = RXFile()
+
+ if rxS.stream(rSource, "c", "open read") \= rReady then
+  return Err(2, 1)
+
+ rxT.delete(rTarget)
+ if rxT.stream(rTarget, "c", "open write") \= rReady then
+  return Err(7, 1)
+
+ iLung = rxS.stream(rSource, "c", "query size")
+ if iLung > 200000 then
+ do
+  iChunks = Rexx(iLung / 200000).trunc
+  loop for iChunks
+   rxT.charout(rxS.charin(0, 200000))
+  end
+  rxT.charout(rxS.charin(0, iLung - (200000 * iChunks)))
+ end
+ else
+  rxT.charout(rxS.charin(0, iLung))
+
+ rxS.stream("c", "close")
+ rxT.stream("c", "close")
+
+ return Err(0, 1)
+
+
+
+ method setparms(bSepCurs = boolean, iRN = int) returns Rexx
+  if rafStream\=null then return Err(8,1)
+
+  bRWCurs = bSepCurs
+  select
+   when iRN = 0 then 
+   do
+    rNLine = cNLn
+    iNLRN = 0
+   end
+   when iRN = 1 then 
+   do
+    rNLine = cNLr||cNLn
+    iNLRN = 1
+   end
+   otherwise
+   do
+    rNLine = cNLr
+    iNLRN = 2
+   end
+  end
+  return Err(0,1)
+
+
+
+ method getparms() returns Rexx
+  rReturn = Rexx ''
+
+  if bRWCurs = 1 then 
+   rReturn ='1'
+  else
+   rReturn ='0'
+  select
+   when iNLRN = 0 then
+    rReturn = rReturn || '0'
+   when iNLRN = 1 then
+    rReturn = rReturn || '1'
+   otherwise
+    rReturn = rReturn || '2'
+  end
+  return rReturn
+
+
+method addcursor(rKey = Rexx, lCursPosToAdd = long) returns Rexx
+ if rKey= null then return Err(1,1)
+ if (rKey= "") | (lCursPosToAdd < 0) then return Err(1,1)
+ stemCursor[rKey] = lCursPosToAdd
+ return Err(0,1)
+
+
+
+method getcursor(rKey = Rexx) returns Rexx
+ if rKey= null then return Err(1,1)
+ if (rKey= "") then return Err(1,1)
+ return stemCursor[rKey]
+
+
+
+method delcursor(rKey = Rexx) returns Rexx
+ if rKey= null then return Err(1,1)
+ if (rKey= "") then return Err(1,1)
+
+ stemCursor[rKey]=stemCursor
+ return Err(0,1)
+
+
+
+method delallcursors() returns Rexx
+ rIndex = Rexx null
+
+ loop rIndex over stemCursor
+  stemCursor[rIndex]=stemCursor
+ end
+ return Err(0,1)
+
+
+
+method RXFile()
+ rLineSep = Rexx
+
+ iLastErr = -1
+
+ disConsoleIn = BufferedReader(InputStreamReader(System.in))
+ dosConsoleOut = DataOutputStream(System.out)
+ rLineSep = System.getProperty("line.separator")
+ select
+ when rLineSep = cNLr || cNLn then 
+  setparms(0, 1)
+ when rLineSep = cNLn then
+  setparms(0, 0)
+ otherwise
+  setparms(0, 2)
+ end
+ stemCursor = null
+ stemCursor = Rexx "Error: no such cursor."
+
+
+
+ method RXFile(rFileName = Rexx)
+  rLineSep = Rexx
+
+  iLastErr = -1
+
+  disConsoleIn = BufferedReader(InputStreamReader(System.in))
+  dosConsoleOut = DataOutputStream(System.out)
+  rLineSep = System.getProperty("line.separator")
+  select
+  when rLineSep = cNLr || cNLn then 
+   setparms(0, 1)
+  when rLineSep = cNLn then
+   setparms(0, 0)
+  otherwise
+   setparms(0, 2)
+  end
+  stemCursor = null
+  stemCursor = Rexx "Error: no such cursor."
+  stream(rFileName,rCommand,rOpen)
+
+
+ method RXFile(rInputStream = InputStream, rOutputStream = OutputStream)
+  rLineSep = Rexx
+
+  iLastErr = -1
+  disConsoleIn = BufferedReader(InputStreamReader(rInputStream))
+  dosConsoleOut = DataOutputStream(rOutputStream)
+  rLineSep = System.getProperty("line.separator")
+  select
+  when rLineSep = cNLr || cNLn then 
+   setparms(0, 1)
+  when rLineSep = cNLn then
+   setparms(0, 0)
+  otherwise
+   setparms(0, 2)
+  end
+  stemCursor = null
+  stemCursor = Rexx "Error: no such cursor."
+
+
+ method RXFile(rFileName = Rexx, rType = Rexx, rComm = Rexx)
+  rLineSep = Rexx
+
+  iLastErr = -1
+
+  disConsoleIn = BufferedReader(InputStreamReader(System.in))
+  dosConsoleOut = DataOutputStream(System.out)
+  rLineSep = System.getProperty("line.separator")
+  select
+  when rLineSep = cNLr || cNLn then 
+   setparms(0, 1)
+  when rLineSep = cNLn then
+   setparms(0, 0)
+  otherwise
+   setparms(0, 2)
+  end
+  stemCursor = null
+  stemCursor = Rexx "Error: no such cursor."
+  stream(rFileName, rType, rComm)
+
+
+ method attachtoinputstream(rInputStream = InputStream) returns Rexx
+  rNLine = cNLn
+  iNLRN = 0
+  disConsoleIn = BufferedReader(InputStreamReader(rInputStream))
+  return Err(0, 1)
+
+
+ method attachtooutputstream(rOutputStream = OutputStream) returns Rexx
+  rNLine = cNLn
+  iNLRN = 0
+  dosConsoleOut = DataOutputStream(rOutputStream)
+  return Err(0, 1)
+
+
+ method Err(iErrCode = int, bVerbose = boolean) private returns Rexx
+  if iErrCode \= -2 then iLastErr = iErrCode
+  if bVerbose = 1 then
+  do
+   select
+   when iLastErr = -1 then return "NOFILEOPEN:"
+   when iLastErr = 0 then return rReady
+   when iLastErr = 1 then return "SYNTAX ERROR:"
+   when iLastErr = 2 then return "NOTREADY:32"
+   when iLastErr = 3 then return "NOTREADY:110"
+   when iLastErr = 4 then return "NOTREADY:EOF"
+   when iLastErr = 5 then return "ILLEGAL:WRONG ACCESS MODE"
+   when iLastErr = 6 then return "ILLEGAL:ALREADY EXISTS"
+   when iLastErr = 7 then return "ILLEGAL:CANT ACCESS TARGET"
+   when iLastErr = 8 then return "ILLEGAL:ALREADY INIT"
+   when iLastErr = 9 then return "NOTREADY:NOSUCHDIRECTORY"
+   when iLastErr = 10 then return "NOTREADY:DIRECTORYISEMPTY"
+   otherwise return "WEIRD ERROR:"
+   end
+  end
+  else do
+   select
+   when iLastErr = -1 then return "NOFILEOPEN:"
+   when iLastErr = 0 then return rReady
+   when iLastErr = 1 then return "SYNTAX ERROR:"
+   when iLastErr = 2 then return "NOTREADY:"
+   when iLastErr = 3 then return "NOTREADY:"
+   when iLastErr = 4 then return "NOTREADY:"
+   when iLastErr = 5 then return "ILLEGAL:"
+   when iLastErr = 6 then return "ILLEGAL:"
+   when iLastErr = 7 then return "ILLEGAL:"
+   when iLastErr = 8 then return "ILLEGAL:"
+   when iLastErr = 9 then return "NOTREADY:"
+   when iLastErr = 10 then return "NOTREADY:"
+   otherwise return "WEIRD ERROR:"
+   end
+  end
+
+
+
+ method stream(rFileName = Rexx, rType = Rexx, rComm = Rexx) returns Rexx
+  cType = char
+  iCommand = int 0
+  lOffset = long 0
+  lLength = long 0
+  lFileLength = long 0
+  rSubCommand = Rexx
+  fileFile = File null
+  bExists = boolean 0
+
+  /*
+     -- iCommand values mean... --
+
+     0 == variable not initialized
+     1 == open read
+     2 == open write
+     3 == open
+     4 == query size
+     5 == query exists
+     6 == query datetime
+     7 == close
+     8 == seek =
+     9 == seek +
+    10 == seek -  
+    11 == wseek =
+    12 == wseek +
+    13 == wseek -  
+    14 == rseek =
+    15 == rseek +
+    16 == rseek -  
+    17 == seek <
+    18 == wseek <
+    19 == rseek <
+  */
+
+ /* -- Are the parameters correct? */
+ if rFileName = null | rType = null | rComm = null then return Err(1,1)
+
+ /* -- Is type correct? */
+ cType = rType.strip.left(1).upper
+ if  cType \= rC then return Err(1, 1)
+
+ /* -- Is command correct? Also, tokenize COMMAND */
+ rComm = rComm.strip.upper
+ if rComm = "" then return Err(1, 1)
+
+ parse rComm rSubCommand rComm
+ rSubCommand = rSubCommand.left(1)
+ select
+ when rSubCommand = rO then do
+  select
+  when rComm = "" then iCommand = 3
+  when rComm = rRead then iCommand = 1
+  when rComm = rWRITE then iCommand = 2
+  otherwise
+   return Err(1, 1)
+  end
+ end
+ when rSubCommand = rQ then do
+  select
+   when rComm = rSize then iCommand = 4
+   when rComm = rExists then iCommand = 5
+   when rComm = rDateTime then iCommand = 6
+  otherwise
+   return Err(1, 1)
+  end
+ end
+ when rSubCommand = rC then do
+  iCommand = 7
+ end
+ when rSubCommand = rS then do
+  select
+   when rComm.left(1) = rEqual then 
+   do
+    iCommand = 8
+    lOffset = rComm.right(rComm.length() - 1) -1
+   end
+   when rComm.left(1) = rPlus then
+   do
+    iCommand = 9
+    lOffset = rComm.right(rComm.length() - 1) -1
+   end
+   when rComm.left(1) = rMinus then
+   do
+    iCommand = 10
+    lOffset = rComm.right(rComm.length() - 1) +1
+   end
+   when rComm.left(1) = rLess then
+   do
+    iCommand = 17
+    lOffset = rComm.right(rComm.length() - 1) 
+   end
+  otherwise
+   return Err(1, 1)
+  end
+ end
+ when rSubCommand = rW then do
+  if lWriteCurs = -1 | bRWCurs=0 then return Err(5,1)
+  select
+   when rComm.left(1) = rEqual then
+   do
+    iCommand = 11
+    lOffset = rComm.right(rComm.length() - 1) -1
+   end
+   when rComm.left(1) = rPlus then
+   do
+    iCommand = 12
+    lOffset = rComm.right(rComm.length() - 1) -1
+   end
+   when rComm.left(1) = rMinus then
+   do
+    iCommand = 13
+    lOffset = rComm.right(rComm.length() - 1) +1
+   end
+   when rComm.left(1) = rLess then
+   do
+    iCommand = 18
+    lOffset = rComm.right(rComm.length() - 1)
+   end
+  otherwise
+   return Err(1, 1)
+  end
+ end
+ when rSubCommand = rR then do
+  if lReadCurs = -1 | bRWCurs=0 then return Err(5,1)
+  select
+   when rComm.left(1) = rEqual then 
+   do
+    iCommand = 14
+    lOffset = rComm.right(rComm.length() - 1) -1
+   end
+   when rComm.left(1) = rPlus then
+   do
+    iCommand = 15
+    lOffset = rComm.right(rComm.length() - 1) -1
+   end
+   when rComm.left(1) = rMinus then
+   do
+    iCommand = 16
+    lOffset = rComm.right(rComm.length() - 1) +1
+   end
+   when rComm.left(1) = rLess then
+   do
+    iCommand = 19
+    lOffset = rComm.right(rComm.length() - 1)
+   end
+  otherwise
+   return Err(1, 1)
+  end
+ end
+ otherwise
+  return Err(1, 1)
+ end
+
+ /* 
+    -- Check for file validity 
+ */
+
+ do
+  fileFile = File(rFileName)
+  bExists = fileFile.exists()
+  lFileLength = fileFile.length()
+  if bExists=0 & iCommand=5 then return ""
+  if ( (bEXists = 0) & (iCommand<1 | iCommand>3) ) then return Err(3, 1)
+  rFileName = fileFile.getAbsolutePath()
+  if rName \= null then
+   if rName = rFileName & rafStream \= null then
+   do
+    lFileLength = rafStream.length()
+   catch IOException
+    lFileLength = 0
+   end
+ catch NullPointerException
+  if iCommand \= 5 then return Err(1,1)
+  else return ""
+ end
+
+ /* 
+     If we are re-opening the same stream with the same 
+     access modes we had it opened before, do nothing 
+ */
+
+if (rName\=null) then
+do
+ if ( (rFileName = rName) & (iCommand  >0 & iCommand <4) ) then
+ do
+  select 
+   when iCommand = 1 then
+   do
+    /* r  */
+    if lWriteCurs = -1 then return Err(0,1)
+   end
+   when iCommand = 2 then
+   do
+    /* w  */
+    if lReadCurs = -1 then return Err(0,1)
+   end
+  otherwise
+    /* rw */
+    if (lWriteCurs \= -1 & lReadCurs \= -1) then return Err(0,1)
+  end
+ end
+end
+
+ /* 
+    -- If we are OPENing a new file, closing the old or SEEKing a new file, 
+    let's close this file. 
+ */
+
+ if rName \= null then do
+  if (rFileName = rName & iCommand = 7) | ( ((iCommand>0 & iCommand <4) -
+      | (iCommand>7 & iCommand<20)) & rFilename \= rName) then do
+   if rafStream \= null then
+   do
+    rafStream.close()
+    rafStream = null
+   end
+   rName = null
+  catch IOException
+   return Err(100,1)
+  end
+ end
+
+ /* -- Do the rest (if it's not a CLOSE command) */
+ select
+ when iCommand = 1 then do /* open read */
+  rafStream = RandomAccessFile(fileFile, 'r')
+  lWriteCurs= -1
+  lReadCurs = 1
+  bLastWasRead = 1
+  rName = rFileName
+ catch IOException
+  return Err(2,1)
+ end
+ when iCommand = 2 then do /* open write */
+  rafStream = RandomAccessFile(fileFile, 'rw')
+  lWriteCurs= 1
+  lReadCurs = -1
+  bLastWasRead = 0
+  rName = rFileName
+ catch IOException
+  return Err(2,1)
+ end
+ when iCommand = 3 then do /* open r+w */
+  rafStream = RandomAccessFile(fileFile, 'rw')
+  if bRWCurs=1 then lWriteCurs= 1
+  else lWriteCurs = -2
+  lReadCurs = 1
+  bLastWasRead = 1
+  rName = rFileName
+ catch IOException
+  return Err(2,1)
+ end
+ when iCommand = 4 then do /* query size */
+  return fileFile.length()
+ end
+ when iCommand = 5 then do /* query exists */
+  return rFileName
+ end
+ when iCommand = 6 then do /* query datetime */
+  return fileFile.lastModified()
+ end
+ when iCommand = 8 then do /* seek = */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  if lOffset < 0 then
+   lOffset=0
+  rafStream.seek(lOffset)
+  if lWriteCurs > -1 then do
+   lWriteCurs = lOffset + 1
+   bLastWasRead = 0
+  end
+  if lReadCurs \= -1 then do
+   lReadCurs = lOffset + 1
+   bLastWasRead = 1
+  end
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 9 then do /* seek + */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  if lReadCurs \= -1 then do 
+   lOffset = lOffset + lReadCurs
+   if lFileLength< lOffset then
+    lOffset=lFileLength
+   rafStream.seek(lOffset)
+   bLastWasRead = 1
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(100,1)
+   catch IOException
+    return Err(2,1)
+   end
+  end
+  else do
+   lOffset = lOffset + lWriteCurs
+   if lFileLength< lOffset then
+    lOffset=lFileLength
+   rafStream.seek(lOffset)
+   bLastWasRead = 0
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(100,1)
+   catch IOException
+    return Err(2,1)
+   end
+  end
+  if lWriteCurs > -1 then lWriteCurs = lOffset + 1
+  if lReadCurs \= -1 then lReadCurs = lOffset + 1
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 10 then do /* seek - */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  if lReadCurs \= -1 then do
+   lOffset = lReadCurs - lOffset
+   if lFileLength< lOffset then
+    lOffset=lFileLength
+   if lOffset < 0 then
+    lOffset=0
+   rafStream.seek(lOffset)
+   bLastWasRead = 1
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(100,1)
+   catch IOException
+    return Err(2,1)
+   end
+  end
+  else do
+   lOffset = lWriteCurs - lOffset
+   if lFileLength< lOffset then
+    lOffset=lFileLength
+   if lOffset < 0 then
+    lOffset=0
+   rafStream.seek(lOffset)
+   bLastWasRead = 0
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(100,1)
+   catch IOException
+    return Err(2,1)
+   end
+  end
+  if lWriteCurs > -1 then lWriteCurs = lOffset + 1
+  if lReadCurs \= -1 then lReadCurs = lOffset + 1
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 11 then do /* wseek = */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  if lOffset < 0 then
+   lOffset=0
+  rafStream.seek(lOffset)
+  lWriteCurs = lOffset + 1
+  bLastWasRead = 0
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 12 then do /* wseek + */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lOffset = lOffset + lWriteCurs
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  rafStream.seek(lOffset)
+  lWriteCurs = lOffset + 1
+  bLastWasRead = 0
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 13 then do /* wseek - */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lOffset = lWriteCurs - lOffset
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  if lOffset < 0 then
+   lOffset=0
+  rafStream.seek(lOffset)
+  lWriteCurs = lOffset + 1
+  bLastWasRead = 0
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 14 then do /* rseek = */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  if lOffset < 0 then
+   lOffset=0
+  rafStream.seek(lOffset)
+  lReadCurs = lOffset + 1
+  bLastWasRead = 1
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 15 then do /* rseek + */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lOffset = lOffset + lReadCurs
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  rafStream.seek(lOffset)
+  lReadCurs = lOffset + 1
+  bLastWasRead = 1
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 16 then do /* rseek - */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lOffset = lReadCurs - lOffset
+  if lFileLength< lOffset then
+   lOffset=lFileLength
+  if lOffset < 0 then
+   lOffset=0
+  rafStream.seek(lOffset)
+  lReadCurs = lOffset + 1
+  bLastWasRead = 1
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 17 then do /* seek < */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lLength = rafStream.length()
+  lOffset=lLength-lOffset
+  if lOffset<0 then 
+   lOffset=0
+  rafStream.seek(lOffset)
+  if lWriteCurs > -1 then do
+   lWriteCurs = lOffset + 1
+   bLastWasRead = 0
+  end
+  if lReadCurs \= -1 then do
+   lReadCurs = lOffset + 1
+   bLastWasRead = 1
+  end
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 18 then do /* rseek < */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lLength = rafStream.length()
+  lOffset=lLength-lOffset
+  if lOffset<0 then 
+   lOffset=0
+  rafStream.seek(lOffset)
+  lReadCurs = lOffset + 1
+  bLastWasRead = 1
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ when iCommand = 19 then do /* wseek < */
+  if rafStream = null then 
+  do
+   stream(rFileName, rCommand, rOpen)
+   lFileLength = stream(rCommand, rQuerySize)
+  end
+  lLength = rafStream.length()
+  lOffset=lLength-lOffset
+  if lOffset<0 then 
+   lOffset=0
+  rafStream.seek(lOffset)
+  lWriteCurs = lOffset + 1
+  bLastWasRead = 0
+  return (rafStream.getFilePointer() + 1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(100,1)
+  catch IOException
+   return Err(2,1)
+  end
+ end
+ otherwise
+  return Err(0,1)
+ end
+
+ /* -- Done with it */
+ return Err(0,1)
+
+
+
+ method stream(rType = Rexx, rComm = Rexx) returns Rexx
+  if rafStream = null | rComm = null then
+   return Err(-1,1)
+
+  if rComm.words = 2 then
+   if rComm.word(1).left(1).upper = "Q" & rComm.word(2).left(1).upper = "S" then
+   do
+    return rafStream.length()
+    catch IOException
+     return Err(7, 1)
+   end
+
+  return stream(rName, rType, rComm)
+
+
+ method stream(rType = Rexx) returns Rexx
+  if rafStream = null then return Err(-1,1)
+  rType = ((rType.strip()).left(1)).upper()
+  select
+   when rType='D' then return Err(-2, 1)
+   when rType=rS then return Err(-2, 0)
+  otherwise
+   return Err(1,1)
+  end
+
+
+method delete(rFileName = Rexx) returns Rexx
+ fileFile = File null
+
+ do
+  fileFile = File(rFileName)
+ catch NullPointerException
+  return Err(1,1)
+ end
+ if fileFile.delete() = 1 then return Err(0,1)
+ else return Err(3,1)
+
+
+method rename(rOldFileName = Rexx, rNewFileName = Rexx) returns Rexx
+ fileFile = File null
+ fileFile2 = File null
+
+ do
+  fileFile = File(rOldFileName)
+  fileFile2 = File(rNewFileName)
+ catch NullPointerException
+  return Err(1,1)
+ end
+ if fileFile.exists() = 0 then return Err(6,1)
+ if fileFile2.exists() = 1 then return Err(3,1)
+ if fileFile.renameTo(fileFile2) = 1 then return Err(0,1)
+ else return Err(7,1)
+
+
+method mkdir(rDirName = Rexx) returns Rexx
+ fileFile = File null
+
+ do
+  fileFile = File(rDirName)
+ catch NullPointerException
+  return Err(1,1)
+ end
+ if fileFile.mkdir() = 1 then return Err(0,1)
+ else return Err(7,1)
+
+
+method mkdirs(rDirName = Rexx) returns Rexx
+ fileFile = File null
+
+ do
+  fileFile = File(rDirName)
+ catch NullPointerException
+  return Err(1,1)
+ end
+ if fileFile.mkdirs() = 1 then return Err(0,1)
+ else return Err(7,1)
+
+
+
+method StringArrayToRexxArray(sToConvert = String[]) returns Rexx[]
+ iHowMany = int 0
+ iCount = int
+ rRet = Rexx[]
+
+ rRet = null
+ if sToConvert = null then return rRet
+
+ rRet = Rexx[sToConvert.length]
+ iCount = sToConvert.length
+ loop iHowMany = 1 to iCount
+  rRet[iHowMany - 1] = sToConvert[iHowMany - 1]
+ end
+
+ return rRet
+
+
+method properties(rFileName = Rexx) returns Rexx
+ fileFile = File null
+ rReturn = Rexx null
+
+ do
+  fileFile = File(rFileName)
+  if fileFile.isFile() = 1 then 
+   rReturn="f" 
+  else
+   rReturn="-"
+  if fileFile.isDirectory() = 1 then 
+   rReturn = rReturn || "d" 
+  else
+   rReturn = rReturn || "-"
+  if fileFile.canRead() = 1 then 
+   rReturn = rReturn || "r" 
+  else
+   rReturn = rReturn || "-"
+  if fileFile.canWrite() = 1 then 
+   rReturn = rReturn || "w" 
+  else
+   rReturn = rReturn || "-"
+ catch NullPointerException
+  return Err(3,1)
+ end
+
+ return rReturn
+
+
+method synch(bToRead = boolean) private returns Rexx
+
+ if bRWCurs=0 then return Err(0,1)
+
+ if bToRead=1 then do
+  if bLastWasRead=0 then
+  do
+   if lReadCurs=-1 then return Err(5,1)
+   rafStream.seek(lReadCurs)
+  catch IOException
+   do
+    rafStream.close()
+    rafStream = null
+    return Err(2,1)
+   catch IOException
+    rafStream = null
+    return Err(2,1)
+   end
+  end
+ end 
+ else 
+ do
+  if bLastWasRead=1 then
+  do
+   if lWriteCurs=-1 then return Err(5,1)
+   rafStream.seek(lWriteCurs)
+  catch IOException
+   do
+    rafStream.close()
+    rafStream = null
+    return Err(2,1)
+   catch IOException
+    rafStream = null
+    return Err(2,1)
+   end
+  end
+ end
+
+ return Err(0,1)
+
+
+method chars(rFileName = Rexx) returns Rexx
+ rInput = Rexx null
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+ return chars()
+
+
+method chars() returns Rexx
+ rReturn = Rexx null
+ iLeft = int
+
+ if rafStream \= null then
+ do
+  if lReadCurs \= -1 then do
+   if lWriteCurs > -1 then do
+    rReturn=synch(1)
+    if rReturn\= rReady then return rReturn
+    bLastWasRead=1
+   end
+   return rafStream.length() - lReadCurs + 1
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(2,1)
+   catch IOException
+    rafStream = null
+    return Err(2,1)
+   end
+  end
+  else
+   return Err(7,1)
+ end
+ else
+ do
+  iLeft = disConsoleIn.ready()
+  return iLeft
+ catch IOException
+  return 0
+ end
+
+
+
+method lines(rFileName = Rexx) returns Rexx
+ rInput = Rexx null
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+ return lines()
+
+
+
+method lines() returns Rexx
+
+ if rafStream \= null then
+ do
+  if lReadCurs \= -1 then do
+   if rafStream.length() - lReadCurs > -1 then
+    return 1
+   else
+    return 0
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(2,1)
+   catch IOException
+    rafStream = null
+    return Err(2,1)
+   end
+  end
+  else
+   return Err(7,1)
+ end
+ else
+ do
+  if disConsoleIn.ready() > 0 then
+   return 1
+  else
+   return 0
+ catch IOException
+  return 0
+ end
+
+
+
+method charin(rFileName = Rexx) returns Rexx
+ rInput = Rexx null
+ rReturn = Rexx null
+ iRead = int
+ bRead = byte[1]
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+
+ /* this is charin() */
+ 
+do
+ if lReadCurs=-1 then return Err(7,1)
+ if lWriteCurs > -1 then do
+  rReturn = synch(1)
+  if rReturn\= rReady then return rReturn
+ end
+ iRead = rafStream.read()
+ if iRead = -1 then 
+ do
+  Err(4,1)
+  return Err(4,1)
+ end
+ lReadCurs = lReadCurs + 1
+ bLastWasRead = 1
+ bRead[0] = Integer(iRead).byteValue
+ return String(bRead)
+catch IOException
+ do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+ catch IOException
+  rafStream = null
+  return Err(2,1)
+ end
+end
+
+method charin() returns Rexx
+ rReturn = Rexx null
+ iRead = int
+ bRead = byte[1]
+
+ if rafStream = null then
+  do
+   return disConsoleIn.read()
+  catch IOException
+   return Err(2,1)
+  end
+ else
+  do
+   if lReadCurs=-1 then return Err(7,1)
+   if lWriteCurs > -1 then do
+    rReturn = synch(1)
+    if rReturn\= rReady then return rReturn
+   end
+   iRead = rafStream.read()
+   if iRead = -1 then 
+   do
+    Err(4,1)
+    return Err(4,1)
+   end
+   lReadCurs = lReadCurs + 1
+   bLastWasRead = 1
+   bRead[0] = Integer(iRead).byteValue
+   return String(bRead)
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(2,1)
+   catch IOException
+    rafStream = null
+    return Err(2,1)
+   end
+  end
+
+
+method charin(rFileName = Rexx, lStartPos = long, iHowManyBytes = int) returns Rexx
+ rInput = Rexx null
+ rReturn = Rexx null
+ bRead = byte[iHowManyBytes]
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+
+ /* this is charin(1,2) */
+
+ if lReadCurs = -1 then return Err(7,1)
+ if lStartPos<0 | iHowManyBytes<0 then return Err(1,1)
+
+if lStartPos\=0 then do
+ if (lWriteCurs > -1 )then do
+  rReturn=synch(1)
+  if rReturn\= rReady then return rReturn
+ end
+ else
+ do
+  if bRWCurs=1 then do
+   rReturn = stream(rCommand,"rseek =" || lStartPos)
+   if rReturn.datatype(rNumeric)\=1 then return rReturn
+  end
+  else
+  do
+   rReturn = stream(rCommand,rSeekAt || lStartPos)
+   if rReturn.datatype(rNumeric)\=1 then return rReturn
+  end
+ end
+end
+
+ rReturn=""
+ do
+  rafStream.read(bRead,0, iHowManyBytes)
+  rReturn = String(bRead)
+  lReadCurs = lReadCurs + rReturn.length()
+  bLastWasRead=1
+  return rReturn
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+  catch IOException
+   rafStream = null
+   return Err(2,1)
+  end
+ end
+
+
+method charin(lStartPos = long, iHowManyBytes = int) returns Rexx
+ rReturn = Rexx null
+ bRead = byte[iHowManyBytes]
+
+ if (rafStream = null) then return Err(-1,1)
+ if lReadCurs = -1 then return Err(7,1)
+ if lStartPos<0 | iHowManyBytes<0 then return Err(1,1)
+
+ if lStartPos\=0 then do
+  if (lWriteCurs > -1 )then do
+   rReturn=synch(1)
+   if rReturn\= rReady then return rReturn
+  end
+  else
+  do
+   if bRWCurs=1 then do
+    rReturn = stream(rCommand,"rseek ="||lStartPos)
+    if rReturn.datatype(rNumeric)\=1 then return rReturn
+   end
+   else
+   do
+    rReturn = stream(rCommand,rSeekAt||lStartPos)
+    if rReturn.datatype(rNumeric)\=1 then return rReturn
+   end
+  end
+ end
+
+ do
+  rafStream.read(bRead, 0, iHowManyBytes)
+  rReturn = String(bRead)
+  lReadCurs = lReadCurs + rReturn.length()
+  bLastWasRead=1
+  return rReturn
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+  catch IOException
+   rafStream = null
+   return Err(2,1)
+  end
+ end
+
+
+method linein(rFileName = Rexx, iLine = int, iCount = int) returns Rexx
+ rInput = Rexx null
+ rReturn = Rexx null
+ iLineLength = int 0
+ lRafLength = long 0
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+
+ /* This is actually linein(1,2) */
+
+ if (iLine\=0 & iLine \=1) | (iCount\=0 & iCount\=1) then return Err(1,1)
+ if rafStream = null then return Err(-1,1)
+
+ if iLine=0 then do
+  if bRWCurs=0 then
+   rReturn = stream(rCommand, rSeekAtZero)
+  else
+   rReturn = stream(rCommand, rRSeekAtZero)
+  if rReturn.datatype(rNumeric) = 0 then return rReturn
+ end
+
+ if iCount=0 then
+  return ""
+ else
+ do
+  /* This really is linein() */
+  if rafStream = null then
+  do
+   return disConsoleIn.readLine()
+  catch IOException
+   return Err(2,1)
+  end
+  else
+  do
+   if lReadCurs \= -1 then do
+    if lWriteCurs > -1 then do
+     rInput = synch(1)
+     if rInput\= rReady then return rInput
+    end
+    rInput = rafStream.readLine()
+    iLineLength = rInput.length()
+    lReadCurs = lReadCurs + iLineLength + 1
+    lRafLength = rafStream.length()
+    if (lReadCurs > lRafLength + 1) then lReadCurs=lRafLength + 1
+    bLastWasRead = 1
+    if (iLineLength = 0) then return ""
+    if (rInput.right(1).c2d() = 13) then return rInput.left(iLineLength - 1)
+    else return rInput
+   catch NullPointerException
+    return Err(4,1)
+   catch IOException
+    do
+     rafStream.close()
+     rafStream = null
+     return Err(2,1)
+    catch IOException
+     rafStream = null
+     return Err(2,1)
+    end
+   end
+   else
+    return Err(7,1)
+  end
+ end
+
+
+method linein(iLine = int, iCount = int) returns Rexx
+ rReturn = Rexx null
+ rInput = Rexx null
+ iLineLength = int 0
+ lRafLength = long 0
+
+ if (iLine\=0 & iLine \=1) | (iCount\=0 & iCount\=1) then return Err(1,1)
+ if rafStream = null then return Err(-1,1)
+
+ if iLine=0 then do
+  if bRWCurs=0 then
+   rReturn = stream(rCommand, rSeekAtZero)
+  else
+   rReturn = stream(rCommand, rRSeekAtZero)
+  if rReturn.datatype(rNumeric) = 0 then return rReturn
+ end
+
+ if iCount=0 then
+  return ""
+ else
+ do
+  /* This really is linein() */
+  if rafStream = null then
+  do
+   return disConsoleIn.readLine()
+  catch IOException
+   return Err(2,1)
+  end
+  else
+  do
+   if lReadCurs \= -1 then do
+    if lWriteCurs > -1 then do
+     rInput = synch(1)
+     if rInput\= rReady then return rInput
+    end
+    rInput = rafStream.readLine()
+    iLineLength = rInput.length()
+    lReadCurs = lReadCurs + iLineLength + 1
+    lRafLength = rafStream.length()
+    if (lReadCurs > lRafLength + 1) then lReadCurs=lRafLength + 1
+    bLastWasRead = 1
+    if (iLineLength = 0) then return ""
+    if (rInput.right(1).c2d() = 13) then return rInput.left(iLineLength - 1)
+    else return rInput
+    catch NullPointerException
+     return Err(4,1)
+    catch IOException
+    do
+     rafStream.close()
+     rafStream = null
+     return Err(2,1)
+     catch IOException
+      rafStream = null
+      return Err(2,1)
+    end
+   end
+   else
+    return Err(7,1)
+  end
+ end
+
+
+
+method linein() returns Rexx
+ rInput = Rexx null
+ iLineLength = int 0
+
+ if rafStream = null then
+ do
+  return disConsoleIn.readLine()
+ catch IOException
+  return Err(2,1)
+ end
+ else
+ do
+  if lReadCurs \= -1 then do
+   if lWriteCurs > -1 then do
+    rInput = synch(1)
+    if rInput \= rReady then return rInput
+   end
+   rInput = rafStream.readLine()
+  iLineLength = rInput.length()
+  lReadCurs = rafStream.getFilePointer() + 1
+  bLastWasRead = 1
+  if (iLineLength = 0) then return ""
+  if (rInput.right(1) = r13) & (iNLRN = 1) then return rInput.left(iLineLength - 1)
+  else return rInput
+  catch NullPointerException
+   return Err(4,1)
+  catch IOException
+   do
+   rafStream.close()
+   rafStream = null
+   return Err(2,1)
+   catch IOException
+    rafStream = null
+    return Err(2,1)
+   end
+  end
+  else
+   return Err(7,1)
+ end
+
+
+method linein(rFileName = Rexx) returns Rexx
+ rInput = Rexx null
+ iLineLength = int 0
+ lRafLength = long 0
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+
+ /* This is actually linein() */
+
+ if lReadCurs \= -1 then do
+  if lWriteCurs > -1 then do
+   rInput = synch(1)
+   if rInput\= rReady then return rInput
+  end
+  rInput = rafStream.readLine()
+  iLineLength = rInput.length()
+  lReadCurs = lReadCurs + iLineLength + 1
+  lRafLength = rafStream.length()
+  if (lReadCurs > lRafLength + 1) then lReadCurs=lRafLength + 1
+  bLastWasRead = 1
+  if (iLineLength = 0) then return ""
+  if (rInput.right(1).c2d() = 13) then return rInput.left(iLineLength - 1)
+  else
+   return rInput
+ catch NullPointerException
+  return Err(4,1)
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+  catch IOException
+   rafStream = null
+   return Err(2,1)
+  end
+ end
+ else
+  return Err(7,1)
+
+
+method charout(rToWrite = Rexx, lStartPos = long) returns Rexx
+ sConvert = String null
+ rReturn = Rexx null
+
+ if rafStream = null then return Err(-1,1)
+ if lWriteCurs = -1 then return Err(7,1)
+ if lStartPos<0 then return Err(1,1)
+ if rToWrite = null then rToWrite = ""
+
+ if lReadCurs \= -1 then do
+  rReturn=synch(0)
+  if rReturn\= rReady then return rReturn
+ end
+ sConvert = rToWrite
+ if lStartPos\=0 then do
+  if bRWCurs=1 then do
+   rReturn = stream(rCommand,rWSeekAt||lStartPos)
+   if rReturn.datatype(rNumeric)\=1 then return rReturn
+  end
+  else
+   rReturn = stream(rCommand,rSeekAt||lStartPos)
+   if rReturn.datatype(rNumeric)\=1 then return rReturn
+ end
+
+ do
+  rafStream.writeBytes(sConvert)
+  if bRWCurs=1 then lWriteCurs = lWriteCurs + sConvert.length()
+  else
+  do
+   if lWriteCurs=-2 then lReadCurs = lReadCurs + sConvert.length()
+   else lWriteCurs = lWriteCurs + sConvert.length()
+  end 
+  bLastWasRead=0
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+  catch IOException
+   rafStream = null
+   return Err(2,1)
+  end
+ end
+ return Err(0,1)
+
+
+method  charout(rFileName = Rexx, rToWrite = Rexx) returns Rexx
+ rInput = Rexx null
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+
+ return charout(rToWrite)
+
+
+method  charout(rFileName = Rexx, rToWrite = Rexx, lStartPos = long) returns Rexx
+ rInput = Rexx null
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+
+ return charout(rToWrite, lStartPos)
+
+
+method lineout(rToWrite = Rexx) returns Rexx
+ sConvert = String null
+ rReturn = Rexx null
+
+ /* It is really charout(parm1, parm2) from now on */
+
+ if rafStream=null then 
+ do
+  dosConsoleOut.writeBytes(rToWrite || rNLine)
+  dosConsoleOut.flush()
+  return Err(0,1)
+ catch IOException
+  return Err(7,1)
+ end
+
+ if lWriteCurs = -1 then return Err(7,1)
+ if rToWrite = null then rToWrite = ""
+
+ if lReadCurs \= -1 then do
+  rReturn=synch(0)
+  if rReturn\= rReady then return rReturn
+ end
+ sConvert = rToWrite||rNLine
+
+ do
+  rafStream.writeBytes(sConvert)
+
+  if bRWCurs=1 then lWriteCurs = lWriteCurs + sConvert.length()
+  else
+  do
+   if lWriteCurs=-2 then lReadCurs = lReadCurs + sConvert.length()
+   else lWriteCurs = lWriteCurs + sConvert.length()
+  end 
+  bLastWasRead=0
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+  catch IOException
+   rafStream = null
+   return Err(2,1)
+  end
+ end
+ return Err(0,1)
+
+
+method lineout(rToWrite = Rexx, lStartPos = long) returns Rexx
+ sConvert = String null
+ rReturn = Rexx null
+
+ /* It is really charout(parm1, parm2) from now on */
+
+ if rafStream = null then return Err(-1,1)
+ if lWriteCurs = -1 then return Err(7,1)
+ if lStartPos<0 then return Err(1,1)
+ if rToWrite = null then rToWrite = ""
+ rToWrite = rToWrite || rNLine
+
+ if lReadCurs \= -1 then do
+  rReturn=synch(0)
+  if rReturn\= rReady then return rReturn
+ end
+ sConvert = rToWrite
+ if lStartPos\=0 then do
+  if bRWCurs=1 then do
+   rReturn = stream(rCommand,rWSeekAt||lStartPos)
+   if rReturn.datatype(rNumeric)\=1 then return rReturn
+  end
+  else
+   rReturn = stream(rCommand,rSeekAt||lStartPos)
+   if rReturn.datatype(rNumeric)\=1 then return rReturn
+ end
+
+ do
+  rafStream.writeBytes(sConvert)
+  if bRWCurs=1 then lWriteCurs = lWriteCurs + sConvert.length()
+  else
+  do
+   if lWriteCurs=-2 then lReadCurs = lReadCurs + sConvert.length()
+   else lWriteCurs = lWriteCurs + sConvert.length()
+  end 
+  bLastWasRead=0
+ catch IOException
+  do
+  rafStream.close()
+  rafStream = null
+  return Err(2,1)
+  catch IOException
+   rafStream = null
+   return Err(2,1)
+  end
+ end
+ return Err(0,1)
+
+
+method  lineout(rFileName = Rexx, rToWrite = Rexx, lStartPos = long) returns Rexx
+ rInput = Rexx null
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+ return lineout(rToWrite, lStartPos)
+
+
+method  lineout(rFileName = Rexx, rToWrite = Rexx) returns Rexx
+ rInput = Rexx null
+
+ rInput = stream(rFileName, rCommand, rOpen)
+ if rInput \= rReady then return rInput
+ return lineout(rToWrite)
+
+
+
+
+
+method filetree(rDirName = Rexx) returns Rexx[]
+ rErrArray = Rexx[1]
+ fileFile = File null
+ rRet = Rexx[]
+
+ do
+  rErrArray[0] = Err(9,1)
+  fileFile = File(rDirName)
+  rRet = StringArrayToRexxArray(fileFile.list())
+  if rRet.length = 0 then rRet = rErrArray
+ catch NullPointerException
+  return rErrArray
+ end
+ return rRet
+
+
+
+method filetree(rDirName = Rexx, rFilter = Rexx) returns Rexx[]
+ return filetree(rDirName, rFilter, 0)
+
+
+
+method filetree(rDirName = Rexx, rFilter = Rexx, bCaseSensitive = boolean) returns Rexx[]
+ i = int
+ i2 = int
+ iSatisfying = int 0
+ rRet = Rexx[]
+ rRet2 = Rexx[]
+ rComplies = Rexx
+ rSatisfying = Rexx ""
+
+ rRet = filetree(rDirName)
+
+ if rRet.length = 1 & rRet[0].left(9) = "NOTREADY:" then
+  return rRet
+
+ loop i = 1 to rRet.length
+  if bCaseSensitive = 0 then
+   rComplies = satisfies(rRet[i - 1].upper, rFilter.upper)
+  else
+   rComplies = satisfies(rRet[i - 1], rFilter)
+
+  if rComplies = 1 then 
+   iSatisfying = iSatisfying + 1
+  rSatisfying = rSatisfying || rComplies
+ end
+
+ rRet2 = Rexx[iSatisfying]
+
+ i2 = 0
+ loop i = 1 to rRet.length
+  if rSatisfying.substr(i, 1) = "1" then
+  do
+   rRet2[i2] = rRet[i - 1]
+   i2 = i2 + 1
+  end
+ end
+
+ return rRet2
+
+
+
+method satisfies(op = Rexx, wc = Rexx) private returns boolean
+ i = int
+ lastwp = int 1
+ lastop = int 1
+ oplength = int op.length
+ wclength = int
+ nextop = Rexx
+ nextwc = Rexx
+ nextwcl = Rexx
+ nextwcl2 = Rexx
+ equal = boolean 1
+ och = Rexx
+ wch = Rexx
+
+ loop while wc.pos("**") \= 0 | wc.pos("*?") \= 0 | wc.pos("?*") \= 0
+  wc = wc.changestr("**", "*").changestr("*?", "*").changestr("?*", "*")
+ end
+
+ wclength = wc.length
+
+ loop label mainloop while equal
+  och = op.substr(lastop, 1)
+  wch = wc.substr(lastwp, 1)
+
+  if och \= wch & wch \= "*" & wch \= "?" then 
+  do
+   equal = 0
+   leave mainloop
+  end
+
+  if wch = "?" then
+  do label qmark
+   if (lastwp = wclength & lastop = oplength) then
+    leave mainloop
+
+   i = 1
+   loop while wc.substr(lastwp + i, 1) = "?"
+    i = i + 1
+   end -- i = how many "?" in sequence
+
+   if i > oplength - lastop then
+    leave mainloop
+
+   lastwp = lastwp + i
+   nextwcl = wc.pos("?", lastwp).max(wc.pos("*", lastwp))
+
+   if nextwcl \= 0 then
+   do
+    nextwcl = wc.pos("?", lastwp)
+    nextwcl2 = wc.pos("*", lastwp)
+    if nextwcl = 0 | (nextwcl > nextwcl2 & nextwcl2 \= 0) then
+     nextwcl = nextwcl2
+   end
+   else
+    nextwcl = wclength + 1
+
+   nextwc = wc.substr(lastwp, nextwcl - lastwp)
+   nextop = op.pos(nextwc, lastop)
+
+   if nextop = 0 | (nextop - lastop) > i then
+   do
+    equal = 0
+    leave mainloop
+   end
+
+   lastop = (nextop + nextwc.length) - 1
+   lastwp = lastwp + nextwc.length - 1
+
+  end qmark
+
+  if wch = "*" then
+  do label asterisk
+   if lastwp = wclength then
+    leave mainloop
+
+   lastwp = lastwp + 1
+
+   nextwcl = wc.pos("?", lastwp).max(wc.pos("*", lastwp))
+
+   if nextwcl \= 0 then
+   do
+    nextwcl = wc.pos("?", lastwp)
+    nextwcl2 = wc.pos("*", lastwp)
+    if nextwcl = 0 | (nextwcl > nextwcl2 & nextwcl2 \= 0)then
+     nextwcl = nextwcl2
+   end
+   else
+    nextwcl = wclength + 1
+
+   nextwc = wc.substr(lastwp, nextwcl - lastwp)
+   nextop = op.pos(nextwc, lastop)
+
+   if nextop \= 0 then 
+   do
+    lastop = (nextop + nextwc.length) - 1
+    lastwp = lastwp + nextwc.length - 1
+    leave asterisk
+   end
+
+   if nextwc \= "?" & nextwc \= "*" then
+   do
+    equal = 0
+    leave mainloop
+   end
+
+  end asterisk
+
+  lastop = lastop + 1
+  lastwp = lastwp + 1
+
+  if (lastwp > wclength & lastop <= oplength) then
+  do
+   if wc.right(1) \= "*" & wc.right(1) \= "?" then
+   do
+    equal = 0
+    leave mainloop
+   end
+  end
+
+  if (lastwp <= wclength & lastop > oplength) then
+  do
+   if lastwp = wclength & (wc.right(1) = "*" | wc.right(1) = "?") then
+    leave mainloop
+
+   equal = 0
+   leave mainloop
+  end
+
+  if lastwp > wclength | lastop > oplength then
+   leave mainloop
+
+ end mainloop
+
+return equal
+
