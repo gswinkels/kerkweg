@@ -1,16 +1,17 @@
 /* 	calculate pi using the Viete formula
-	expects to find class "root" in a zip file referenced in 	CLASSPATH. Zip but NO compress!
+	expects to find class "root" in a zip file 
+      referenced in CLASSPATH. Zip but NO compress!
 */
-say 'calculate pi to which number of digits:'
+import java.util.Date
+say 'calculate pi to which number of digits: \-'
 precision = ask
-precision = precision + 1
-numeric digits precision
-err=10**(-precision)
-say 'creating root calculation object'
+precision = precision + 1              -- to get the last digit right 
+numeric digits precision + 2           -- numeric digits needs to be more than precision
+err = 10 ** -precision
 sqroot = root(precision)
-say 'object created'
 a=sqroot.calculate(2)
 oldest=a
+start=Date().getTime
 loop label prompt forever
 	b=sqroot.calculate(2+a)	
       est=oldest*b/2
@@ -19,15 +20,16 @@ loop label prompt forever
       oldest=est
       a=b  
 end prompt
+end=Date().getTime
 pi=4/est
 output(pi)
-say 'Done.'
+say 'Done in ' (end-start)/1000 ' seconds.'
 
 method output(arg=Rexx) static
 sw = 0
 k = 0
 line = Rexx ''
-loop i = 1 to arg.length
+loop i = 1 to arg.length-2
 	line = line || arg.substr(i,1)
       k = k + 1
 	if sw = 1 & k // 5 = 0 then line=line' ' 
