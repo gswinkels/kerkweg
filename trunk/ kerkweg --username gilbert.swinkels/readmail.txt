@@ -1,0 +1,23 @@
+Sub ExtractEmail()
+Dim OlApp As Outlook.Application
+Dim Mailobject As Object
+Dim Email As String
+Dim NS As NameSpace
+Dim Folder As MAPIFolder
+Set OlApp = CreateObject("Outlook.Application")
+' Setup Namespace
+Set NS = ThisOutlookSession.Session
+' Display select folder dialog
+Set Folder = NS.PickFolder
+' Create Text File
+Set fs = CreateObject("Scripting.FileSystemObject")
+Set a = fs.CreateTextFile("c:\email addresses.txt", True)
+' loop to read email address from mail items.
+For Each Mailobject In Folder.Items
+   Email = Mailobject.To
+   a.WriteLine (Email)
+Next
+Set OlApp = Nothing
+Set Mailobject = Nothing
+a.Close
+End Sub
