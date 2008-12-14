@@ -1,0 +1,47 @@
+Sample RM Cobol Program Notes:
+
+1. Define NUM-RECS AND RET-CODE as COMP-1 (binary).
+
+Linking RM Cobol 2.x with Opt-Tech Sort
+
+RM Cobol does not require linking with Opt-Tech 
+Sort.  However, SORTRM.COM  must be on the default 
+drive and directory when running your program.  
+SORTRES must be loaded before running your RM Cobol 
+program.  Load SORTRES with a workarea size 
+specified.
+
+Supported RM/COBOL 2.x File Types
+
+Line Sequential - This is a standard ASCII text 
+type file. Just specify your sort fields on the 
+sort control statement.  No other parameters are 
+necessary.
+
+Binary Sequential - There are two different formats 
+of Binary sequential files.  1. If your records are 
+all the same length, then the sequential binary 
+file contains just your data records.  To sort this 
+type of file specify your sort control field(s) 
+along with the FILETYPE(FIX,nnn) or RECORD(nn) 
+parameter on your sort control statement.
+2. If your records are varying length, (ie. you 
+have different length records defined in the FD for 
+the file) then they have a two byte length field on 
+the front of each record.  Specify your sort 
+field(s) and Filetype(MS) on your control statement.
+
+Relative Files - This type of file contains fixed 
+length records.  Specify your sort control fields 
+and the FILETYPE(FIX,nnnn) or RECORD(nnnn) 
+parameter on your sort control statement.
+
+Dual File Indexed - This type of file consists of 
+two distinct files, the index and the data.  The 
+data portion of the indexed file consists of fixed 
+length records. It can be sorted by specifying your 
+sort control fields and FILETYPE(FIX,nnnn) or 
+RECORD(nnnn) on your sort control statement.  The 
+sorted output file can then be read as a Binary 
+Sequential or Relative file.
+

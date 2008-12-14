@@ -1,0 +1,24 @@
+Microsoft C Program Notes:
+
+1. The Opt-Tech Sort entry point used with 
+Microsoft C Version depends upon the memory model 
+you are using. The entry point name is SORTMSCx 
+where x is either S, M, C or L depending upon the 
+memory model you are using.
+
+
+Linking Opt-Tech Sort with Microsoft C
+
+You should be familiar with the normal procedure 
+for linking Microsoft C programs that is described 
+in your Microsoft C manual.  Example:
+
+     A>LINK
+     Object Modules[.OBJ]:XMSC
+     Run File [XMSC.EXE]:     (press enter)
+     List File [NUL.MAP]:     (press enter)
+     Libraries [.LIB]:SORT
+
+The above example shows the sample program for the 
+small model being linked with Opt-Tech Sort.  
+

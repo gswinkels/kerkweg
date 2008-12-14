@@ -1,0 +1,52 @@
+The following files are included:
+
+Executables:
+
+DUFI.EXE        Displays files to be sorted.  Used by LSMENU. See DUFI.DOC.
+LSMENU.EXE      Menu driven front end for LSORT, DOS version.
+LSMENU2.EXE     Menu driven front end for LSORT, OS2 version.
+LSORT.EXE       LSORT Utility, Command Line interface.  See LSORT.HLP.
+				Family API for DOS and OS2.
+LSRTOS2.EXE     LSRT sort filter.  Runs under DOS and OS2.
+LSORTX3.EXE     Part of LSMENU. DOS and OS2.
+SELEFILE.EXE    File Selection Utility.  Family API for DOS and OS2
+				Used by LSMENU and LSORT.  See SELEFILE.DOC
+
+
+OBJECT FILES (LSORT ONLY):
+    LSMERGE.OBJ
+    LSORT.OBJ
+    LSORTCMP.OBJ
+    LSORTDBF.OBJ
+    LSORTIO.OBJ
+    LSORTPRM.OBJ
+    LSORTQK.OBJ
+    LSORTSUB.OBJ
+    LSSORT.OBJ
+    LSUSER.OBJ
+
+Source Files (LSORT ONLY):
+
+LSRT22.C		Source for LSRT sort filter.
+LSMERGE.C		Source for LSORT:
+LSORT.C
+LSORTCMP.C
+LSORTDBF.C
+LSORTIO.C
+LSORTPRM.C
+LSORTQK.C
+LSORTSUB.C
+LSSORT.C
+LSUSER.C
+LSORT.H			Header File for LSORT
+
+
+
+Other Files:
+
+DUFI.DOC            Documentation for DUFI
+LSORT.CRF           Redirection file used when linking LSORT
+LSORT.HLP           Help for LSORT
+LSORT.MAK           NMAKE for LSORT
+SELEFILE.DOC        Documentation for SELEFILE
+LSORT.DOC           Documentation for LSORT

@@ -1,0 +1,73 @@
+Sample Microfocus Cobol/2 Record Sort Program Notes
+
+1. Opt-Tech Sort can be called from your cobol programs to perform a
+"Record Sort" as shown in the sample program XRSMFCB.CBL.  You can
+compile to a .OBJ or .GNT type of file with no changes in the source
+code.  See information below for specific details when working with
+.OBJ and .GNT type files.
+
+2. The Record Sort interface module for Microfocus Cobol/2 is __RMFCB. 
+
+3. The FUNC, LEN, and RET-CODE parameters must be defined as 2 byte
+binary numbers COMP-5 and a PIC 9(4).
+
+4. If you compile your program to a .OBJ file, then link your program
+as shown below.  Note that XRSMFCB is the name of the sample program
+and would be replaced by your program name.
+
+     C:>LINK
+     Object Modules[.OBJ]:XRSMFCB + [SWnnK /NOE]
+     Run File [XRSMFCB.EXE]: (press enter)
+     List File [NUL.MAP]:   (press enter)
+     Libraries [.LIB]:SORT  
+
+The SWnnk is one of Opt-Tech Sort's fixed size internal memory
+sortwork areas e.g. SW20K.OBJ, SW40K.OBJ etc.  This fixed size area
+is not required when you link with the Microfocus LCOBOL library.  If
+you link with the COBLIB library you will need a fixed size workarea
+unless you use the SET COBPOOL=nnn where nnn is the number of K bytes
+of memory you want for the cobol runtime environment to leave free
+for Opt-Tech Sort.
+
+For example at the DOS command prompt enter: C:>SET COBPOOL=100   
+(reserves 100K of memory)
+
+
+5. If you compile your program to a .GNT file then you must make a
+version of Opt-Tech Sort (__RMFCB.EXE) that your .GNT module can
+call.
+
+When compiling to a .GNT file you must make a __RMFCB.EXE module by
+by compiling and linking as shown below.  You only need to produce
+the __RMFCB.EXE one time.
+
+First compile the Opt-Tech Sort to Microfocus Cobol interface module
+__RMFCB.CBL to a .OBJ module as shown below.
+
+
+     C:>cobol __rmfcb.cbl omf(obj)
+     Object file-name [__RMFCB.OBJ]: (press enter)
+     Source listing   [NUL]:			 (press enter)
+     Object listing   [NUL]:			 (press enter)
+
+Then link this object module with SORT.LIB as shown:
+
+     C:>LINK
+     Object Modules[.OBJ]:__RMFCB + [SWnnK /NOE]
+     Run File [__RMFCB.EXE]: (press enter)
+     List File [NUL.MAP]:    (press enter)
+     Libraries [.LIB]:COBLIB SORT
+
+This produces a file called __RMFCB.EXE that your .GNT program can
+call when you use the RUN command.
+
+
+The SWnnk is one of Opt-Tech Sort's fixed size internal memory
+sortwork areas e.g. SW20K.OBJ, SW40K.OBJ etc.  This sortwork area is
+not required if you use the SET COBPOOL=nnn DOS environment variable
+where nnn is the number of K bytes of memory you want for the cobol
+runtime environment to leave free for Opt-Tech Sort.
+
+For example at the DOS command prompt enter:  C:>SET COBPOOL=100   
+(reserves 100K of memory)
+

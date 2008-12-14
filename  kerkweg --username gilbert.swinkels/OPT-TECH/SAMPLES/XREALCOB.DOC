@@ -1,0 +1,52 @@
+Sample Realia Cobol Program Notes:
+
+1. The Opt-Tech Sort entry point used with Realia 
+Cobol is SORTREAL.
+
+2. The INFILE, OUTFILE, and CTLSTMT parameters must 
+be followed by a "/" (slash).  
+
+3. The NUM-RECS and RET-CODE parameters must be 
+defined as COMP-5.
+
+
+Linking Realia Cobol with Opt-Tech Sort
+
+When linking, the Realia library file (REALCOB.LIB) 
+must be specified last.
+     
+A>LINK
+  Object Module [.OBJ]: XREALCOB
+  Run File [XREALCOB.EXE]:      (press enter)
+  List File [NUL.MAP]:          (press enter)
+  Libraries [.LIB]:SORT REALCOB
+
+
+Realia Cobol File Types Supported
+
+Opt-Tech supports the following type of Realia 
+Cobol files.
+
+1. t & n types are supported as standard text 
+files.
+
+2. b (byte stream) - can be handled as fixed length 
+records, use the Record parameter or 
+FILETYPE(FIX,nnn) on your control statement.
+
+3. f (fixed length format, no delete byte) - can be 
+handled if record length is between 4 and 512      
+bytes.  Your control statement must specify the 
+FILETYPE(FIX,nnn) parameter (or the Record 
+parameter) and the Bypass-Header parameter.
+
+4. d (fixed format with delete byte) - Handle as 
+fixed length format 'f' above and add one to your 
+control field positions to allow for the delete 
+byte in the first position of each record.
+
+5. v (variable) - specify filetype RV for Realia 
+Variable.  You do not need to adjust your control 
+field positions for the 1 or 2 byte record length 
+header contained on these files.
+

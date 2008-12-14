@@ -1,0 +1,38 @@
+Sample Lahey Fortran Program Notes:
+
+1. The Opt-Tech Sort entry point used with Lahey 
+Fortran is "SORTLF".
+
+2. RETCODE must be defined as a 2 byte integer.  
+NUMRECS can be a four byte integer if the 4Byte 
+parameter is specified on your control statement.
+
+3. The Calling method described in previous Opt-
+Tech Sort Manuals of calling the Microsoft Fortran 
+entry point SORTF, declaring SORTF to be MSEXTERNAL 
+and putting a slash "/" at the end of the INFILE, 
+OUTFILE and CTLSTMT parameters still works with 
+Version 4 Opt-Tech Sort.  The method described in 
+this manual and show in the sample program is 
+simpler and also works with Lahey Personal Fortran.
+
+4. When linking with Lahey Fortran F77L you should 
+use the object module F77LFS.OBJ (provided on the 
+Lahey Fortran master diskette).  This allows  
+Opt-Tech Sort to be able to dynamically allocate 
+memory.  Otherwise you must link with one of our
+fixed size work areas (ie. SW40K etc.) or you will
+get an error 222.
+
+
+Linking Lahey Fortran with Opt-Tech Sort
+
+An example of linking the sample Lahey Fortran 
+program with Opt-Tech Sort is shown below. 
+
+   A>LINK
+     Object Modules[.OBJ]:XLFOR F77FS
+     Run File [XLFOR.EXE]:XLFOR
+     List File [NUL.MAP]:        (enter is pressed)
+     Libraries [.LIB]:SORT
+

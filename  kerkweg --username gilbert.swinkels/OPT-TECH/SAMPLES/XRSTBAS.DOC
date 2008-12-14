@@ -1,0 +1,11 @@
+Sample Turbo BASIC Record Passing Program Notes.
+
+1. The resident version of Opt-Tech Sort (SORTRES) 
+must be loaded with a work area (/Wnn) parameter.
+
+2. The Opt-Tech Sort interface is named RSTBAS.COM 
+is included on disk #2.  It gets included with 
+your program via the $INLINE command as is shown
+at the end of the sample program XRSTBAS.BAS.
+
+

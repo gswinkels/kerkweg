@@ -1,0 +1,22 @@
+Sample Microsoft Fortran RAAT Program Notes:
+
+1) The Opt-Tech Sort Record At A Time entry 
+point used with Microsoft Fortran is "RSMSF".
+
+
+Linking Microsoft Fortran with Opt-Tech Sort
+
+An example of linking the sample Microsoft Fortran 
+program to Opt-Tech Sort is shown below. 
+
+     A>LINK
+     Object Modules[.OBJ]:XRSMSF + [SWnnK]
+     Run File [XRSMSF.EXE]:   (enter is pressed)
+     List File [NUL.MAP]:   (enter is pressed)
+     Libraries [.LIB]:SORT
+
+A sortwork area (SWnnK) may not be required when 
+linking.  Please see 'Linking Opt-Tech Sort' and 
+'Memory Considerations' in Chapter Four.
+
+

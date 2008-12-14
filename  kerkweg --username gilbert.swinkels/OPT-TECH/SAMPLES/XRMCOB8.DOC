@@ -1,0 +1,14 @@
+Sample RM Cobol 8.x Program Notes:
+
+1. Define NUM-RECS AND RET-CODE as COMP-1 (binary).
+
+
+Linking RM Cobol 8.x with Opt-Tech Sort
+
+RM Cobol does not require linking with Opt-Tech 
+Sort.  However, SORTRM8X.EXE must be on the default 
+drive and directory when running your program.  
+SORTRES must be loaded before running your RM Cobol 
+program.  SORTRES can use dynamic memory 
+allocation.
+

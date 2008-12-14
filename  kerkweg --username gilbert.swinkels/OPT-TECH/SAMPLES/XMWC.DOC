@@ -1,0 +1,53 @@
+Introduction to Sample Mark Williams C Programs
+
+There is one Opt-Tech Sort sample program for use 
+with Mark Williams C (XMWC.C).  This sample is 
+set up for the MWC86 version but may be changed 
+slightly to call different interface modules to run 
+sample programs for the small and large MSDOS models.
+Each model has a different interface name, compiler, 
+compile command syntax, and unique linking 
+requirements.
+
+Sample MWC86 Program Notes:
+
+1. You must call the interface appropriate 
+interface module for the model you are using. 
+
+2. The MWC86:csd interface name is SORTMWC which 
+invokes the resident version of the sort. 
+SORTRES must be loaded before invoking it. 
+
+3. The small MS-DOS model Opt-Tech Sort interface 
+is SORTMWS. The MS-DOS large model interface is 
+SORTMWL.  
+
+4. Each program model must be compiled using 
+the appropriate version of the cc command. 
+
+
+MWC86 Linking Requirements
+
+There is a special object module (sortmwc.o) on the 
+Opt-Tech Sort distribution diskette for linking 
+with MWC86:csd programs.  Object modules for both 
+the small (SORTMWS.OBJ) and large (SORTMWL.OBJ) MS-
+DOS models are in SORT.LIB.  Mark Williams C does 
+not allow Opt-Tech Sort to allocate memory 
+dynamically.  You should link in a workarea size 
+with the MS-DOS models and specify a workarea when 
+loading SORTRES for the MWC:csd version.   
+
+Sample MWC86:csd CC command:
+cc xmwc.c sortmwc.o           
+
+Sample small MS-DOS cc command
+cc -vsmall xmws.c sortmws.obj swnnk.obj sort.lib  
+                                        
+Sample large MS-DOS cc command:
+cc -vlarge xmwl.c sortmwl.obj swnnk.obj sort.lib          
+
+A sortwork area (SWnnK) may not be required when 
+linking.  Please see 'Linking Opt-Tech Sort' and 
+'Memory Considerations' in chapter 4.
+

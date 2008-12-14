@@ -1,0 +1,23 @@
+MegaBasic Program Notes
+
+1) The interface file SORTMEGA.PGM provides the 
+interface between you MegaBasic program and Opt-
+Tech Sort (SORTRES). 
+
+
+Linking Opt-Tech Sort with MegaBasic
+
+1) MegaBasic 'Links' to Opt-Tech Sort (SORTRES) 
+through the interface file SORTMEGA.PGM.  
+SORTMEGA.PGM must be available on the disk when 
+you run your MegaBasic Program. 
+
+2) SORTRES must be loaded prior to running your 
+MegaBASIC program.
+ 
+3) MegaBasic does not allow Opt-Tech Sort to 
+dynamically allocate workarea.  A workarea size 
+must be specified when loading SORTRES before 
+executing your MegaBasic program.  See loading    
+SORTRES in chapter 4.                     
+

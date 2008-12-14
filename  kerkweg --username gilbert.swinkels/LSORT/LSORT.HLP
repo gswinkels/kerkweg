@@ -1,0 +1,429 @@
+LSORT 3.20 (C) Copyright London Computing, 1983,1984,1985,1986,1987,1988,1990.
+All rights reserved.
+
+LSORT is a general purpose sort/merge utility written in Microsoft C 5.1.
+It runs on IBM PCs and compatibles with at least 192KB and either two floppy
+disks or a fixed disk.  It runs best when there is at lease 320KB available.
+
+LSORT is User Supported Software,  if this program proves useful, please
+make a contribution ($25 suggested) to:
+
+London Computing, P.O. Box 696  Cherry Hill, NJ 08003
+
+Anyone sending a contribution will receive a disk containing the source code
+to LSORT as well as a copy of the LSRT sort filter.  LSRT is similar to the
+DOS SORT filter but works much faster and will sort on multiple fields.
+
+You may make copies of this software and distribute to other users as long as
+there is no charge or other consideration and this notice is not removed or
+bypassed.
+
+LSORT will sort MSDOS files and dBase II and dBase III databases. (dBase III
+memo files are not sorted but .DBF files will be sorted.)  Each file may be
+sorted using 1 to 32 sort fields. The file to be sorted may contain either
+fixed length records, variable length records or comma delimited records.
+Variable length records are records ending with cr/lf. Comma delimited records
+are variable length records where the fields are also variable length and
+separated by a comma. Character fields may be enclosed in either single or
+double quotes. It will merge up to 5 files using 1 to 32 sort fields. dBase
+databases may not be merged. Any field may be sorted in either ascending or
+descending sequence. LSORT allows for three user defined field types to be
+used: X,Y and Z. You must write your own comparison subroutine to compare user
+defined fields.
+
+The sort knows about:                       field type
+
+character fields (to 127 bytes)                   C
+upper case character fields (sort fields are      U
+   translated to upper case before compare)
+2 byte integers in internal  format               I
+4 byte integers in internal format                L
+floating point numbers (ieee)                     F
+double precision floating point (ieee)            D
+zoned decimal  numbers                            N
+   (Text format numbers,  Decimals are allowed)
+   (LSORT now supports scientific notation as)
+   (well, using E notation, eg. .98 == 9.8E-1)
+1 byte logical fields (dBase II or III)           T
+User defined field type X                         X
+User defined field type Y                         Y
+User defined field type Z                         Z
+
+A zoned decimal number is stored as a character string and may contain
+leading and trailing spaces, minus sign, decimal point and digits.
+
+NOTE: zoned decimal numbers sort very slowly!
+The only reasonable field types for comma delimited files are C or N. LSORT
+will accept other field types, but the results are undefined.
+
+
+LSORT will prompt you for all parameters and file names or you may specify
+some or all of the parameters on the command line when you invoke the sort.
+
+The maximum record length is 4096 bytes.  Files will be sorted in memory if
+possible.
+
+Files larger than available memory are sorted in pieces and then merged
+together.  If you have a floppy only system, you should have LSORT on the A
+drive and the file to be sorted on the B drive.  Place a copy of LSORT on an
+otherwise empty disk and use as your A drive.  You may need a formatted empty
+disk for work files on the B drive.
+
+
+SYNTAX:
+
+
+LSORT [-h | -m] -- will prompt you for all necessary information.
+ or
+LSORT [-h | -m] sort specifications--will take the specification specified and
+                                  prompt you for any others.
+
+Specify -h if you are using a fixed (hard disk) for your output and merge
+files. This will eliminate mount messages. This is the default for LSORT 3.01.
+Specify -m if you are using mountable disks (floppy, Bournouli, etc.).  This
+allows you to mount disks to contain work files and output files.
+
+ or
+
+LSORT -R  -- will restart a sort.
+
+
+Sort Specifications:
+
+You will be asked to specify either a SORT or MERGE operation.
+
+If you ask for a SORT, you may tell LSORT to use either a QUICKSORT or
+HEAPSORT for internal sorting.  You will also be asked to specify two
+devices to hold merge files if any are needed.  Merge files may be placed on
+floppy disk, hard disk or RAM disk.  The specified drive must be large
+enough to hold the entire input file.  You will be given the opportunity to
+change floppy disks if desired before each merge drive is used and before
+the output file is written.  The program will wait for you to press 'Y'
+before proceeding.  This is not really a problem for unattended sorting
+if you use redirected input or specify all prompts on the command line.
+
+If you specify SORT or MERGE you will be prompted for your input file(s) and
+output file as well as the definition of the key fields to be used in the
+comparisons.  Fields are specified by their starting position and length.
+The types of fields have been listed above.
+
+The sort specifications may be entered on the command line in the order
+requested by LSORT. Each parameter should be separated from the others with
+one or more spaces.  You will not be prompted for any specification on the
+command line (including requests to change disks).
+
+The sort will ask for the following information in the order shown:
+
+Type of Sort:  You may reply:
+S -- for QUICKSORT
+H -- for HEAPSORT
+
+Merge Drive 1:  You may reply with any drive letter, although it is best to
+specify a fixed disk (if any).
+
+
+Merge Drive 2:  This should be different from drive 1 if you are using
+floppy disks, but should be a fixed disk if you have one.
+
+Name of input file: You may specify any name including drive letter and
+path.  Specify :X to use a user specified input routine.
+
+Name of output file:  See above.  Specify :X to use a user specified output
+routine.
+
+File Type (Unless you are sorting a dBase file):  You may reply F for a
+fixed length file (all records are the same length), V for a varying
+length file (records must end with CR LF.) or D for comma delimited files.
+
+
+If you entered 'F' for a fixed file, you will be prompted for the record
+length.
+
+You will then be prompted for field definitions.  Each field definition has
+four parts:    starting position (from 1)  or  starting field (delimited files)
+               field length (in bytes)         (no prompt for delimited files)
+               field type (See above list of valid types)
+               sort order (A--Ascending, D--Descending)
+
+In order to work as efficiently as possible, LSORT does not check the
+starting position of a field against the actual length of a record.  If some
+field starts past the end of a record (e.g. sort field 1 starts in column 10
+but the record is only 8 bytes long), the results will be undefined and most
+certainly not what you want.  Please be careful.
+
+Enter a '0' for the starting position to end the prompt for field
+definitions.
+
+If you are sorting a dBase file, you will see a list of fields.  You may
+specify a field by name, in which case you will only be prompted for the
+sort order or you may enter starting position, length, type and order as
+above.
+
+Following the '0' that ends field definitions, you may specify a series of
+'Y's if you know that the disks currently mounted will hold merge work files
+and the output file.  These may be omitted if you specified the -H flag.
+
+example 1:
+
+Sort file test.dat on positions 1-5,char,ascending and 6-7, binary integer,
+descending.  Use drive C for the work files and put the sorted file in
+test.srt.
+
+Issue the following command:
+
+LSORT S C C test.dat test.srt V 1 5 C A 6 2 H D 0 Y Y Y
+      | | | |        |        | |_____| |_____| | | | |
+      | | | input    output   F |       |       | | | response to mount
+      | | | file     file     i sort    sort    | | | output file message.
+      | | | name     name     l field 1 field 2 | | |
+      | | |                   e starts  starts  | | response to mount 2nd
+      | | merge drive 2         at byte at byte | | merge volume message.
+      | |                     T 1, is 5 6, is 2 | |
+      | merge drive 1         y byte    byte    | response to mount first
+      |                       p char-   long    | merge volume message.
+      sort using              e acter   integer |
+      quicksort                 string  sorted  ends list of sort fields.
+                                ascend- descend-
+                                ing     ing
+
+
+
+Merge Specification:
+
+Enter 'M' to indicate the merge operation.
+
+You will be asked to enter the number of files to be merged followed by 1-5
+files to be merged. They are entered one at a time.
+
+You will be asked to enter a file type, output file and a field list as
+above.
+
+example:
+
+Merge files t1.dat t2.dat and t3.dat on positions 4-7 defined as a character
+field, ascending.
+
+LSORT M 3 t1.dat t2.dat t3.dat   test.mrg V 4 4 c a 0 y y
+      | | |      |      |        |        | |_____| | |_|
+      | | input  input  input    output   | |       | |
+      | | file 1 file 2 file 3   file     | merge   | response to mount
+      | |                                 | field   | messages
+      | merge 3 files                     | 1       |
+      |                                   |         end of list of merge
+      do a merge                          file      fields
+                                          type
+Restarting:
+
+If a sort stops in the middle due to lack of space or is stopped by you by
+pressing ^BREAK, it may be restarted by issuing the LSORT -R command
+providing the dataset(s), SORTPARM.DAT and (DB3PARM.DAT for dBase III files
+only) are still available and further providing all files LSMERGE?.DAT are
+still available. The sort will be restarted at the beginning of the LSSORT
+phase (where the input file is read and sorted) or at the beginning of an
+LSMERGE pass, where several partially sorted files are combined.
+
+User Exits:
+
+You may define your own user exits to read and write data and you may define
+your own compare routines for the standard field types or for user defined
+field types. These routines must be written in Assembler in DeSmet C88 or in
+any other language that can be linked to DeSmet C88.
+
+User input:  (Available for Sorting Only)
+
+Specify :X as the name of the input file. LSORT uses a routine named USERIP
+to read the records to be sorted. You may write your own version of USERIP
+and link it with LSORT to create a custom version containing your own input
+routine.
+
+USERIP is used as follows:
+
+int l,userip();
+char buffer[...];
+
+l = userip(buffer);
+
+USERIP must return the length of the record read which must be <= 4096 or -1
+for end of file. If you have specified V type files, USERIP must return a
+string ending with a '\0'. The string length must include the trailing '\0'.
+
+User Output:
+
+Specify :X as the name of the output file. LSORT uses a routine called
+USEROP to write to the :X file. You may write your own user output routine
+to be used to write the final sorted or merged output by creating a custom
+version of USEROP and relinking LSORT to create a custom LSORT. USEROP works
+as follows:
+
+int buflen;
+char buffer[...];
+
+userop(buffer,buflen);     /* userop must write buflen bytes from buffer */
+                           /* buflen == 0 means that you want to write a
+                              0 terminated string */
+userop(NULL,-1);           /* userop must perform end of file processing */
+
+
+Sample versions of userip and userop appear below:
+/* Userip to return a varying length string */
+#define CPMEOF 26
+#include "stdio.h"
+userip(s)
+char *s;
+{
+ static char firsttime = 1;
+ static int inchan;
+ char *fgets();
+ int l;
+ /* input is string buffer, max length 4k, 4k always available      */
+ /* this routine must return length of string or EOF if end of file */
+ /* example follows: (Note length of string includes 0 byte at end  */
+      if (firsttime) {
+            firsttime=0;
+            inchan=fopen("usertest.dat","r");
+      }
+      if (fgets(s,4096,inchan))
+            return strlen(s)+1;
+      else
+            return EOF;
+}
+
+/* Userip to return a fixed length string */
+#define CPMEOF 26
+#define STRLEN 128
+#include "stdio.h"
+userip(s)
+char *s;
+{
+ static char firsttime = 1;
+ static int inchan;
+ char *fgets();
+ int c,l;
+ /* input is string buffer, max length 4k, 4k always available      */
+ /* this routine must return length of string or EOF if end of file */
+ /* example follows: (Note length of string includes 0 byte at end  */
+      if (firsttime) {
+            firsttime=0;
+            inchan=fopen("usertest.dat","r");
+      }
+      if ((l=read(inchan,buffer,STRLEN)) == STRLEN)
+            return STRLEN;
+      else
+            return EOF;
+}
+
+
+
+
+
+
+
+
+
+userop(s,l)
+char *s;
+int l;
+{
+/* s is string to write, l is length or 0 if 0 terminated or -1 for close */
+      static char firsttime = 1;
+      static int otchan;
+      if (firsttime) {
+            firsttime = 0;
+            otchan = fopen("usertest.srt","w");
+      }
+
+      if (l == -1 || s == NULL)
+            fclose(otchan);
+      else if (l) /* write an F type record */
+            while(l--) fputc(*s++,otchan);
+      else fputs(s,otchan); /* write a V type record */
+}
+
+
+User Compare Routines:
+
+You may define up three user defined fields: X,Y,Z.  You must write a compare
+routine for each field type used.  The routine names are:
+
+      sxcmp --  for field type X.
+      sycmp --  for field type Y.
+      szcmp --  for field type Z.
+
+The compare routines are called with three arguments, the address of the
+first field, the address of the second field and the field length. The
+routine must return 1 if field 1 < field 2, 0 if field1 == field2 and -1 if
+field1 > field2.
+
+Sample routines are shown below:
+
+sxcmp(a,b,l)
+long int *a,*b;
+int l;
+{ /* this routine compares two long integers */
+long int c;
+c = *a - *b;
+return c <0 ? -1 : c == 0 ? 0 : 1;
+}
+
+sycmp(a,b,l)
+int *a,*b;
+int l;
+{ /* this routine compares two integers (2 bytes) */
+int c;
+c = *a - *b;
+return c <0 ? -1 : c == 0 ? 0 : 1;
+}
+
+
+szcmp(a,b,l)
+float *a,*b;
+int l;
+{ /* this routine compares two floating numbers */
+float c;
+c = *a - *b;
+return c<0 ? -1 : c == 0 ? 0 : 1;
+}
+
+
+
+Linking user written routines:
+
+For MicroSoft C.
+
+Compile your user written routines using Microsoft C 5.1 to create .OBJ files.
+Modify the file lsort.crf to include your routines before LSORTCMP:
+
+lsort.obj +
+                  <=== place your routines here
+lsortcmp.obj +
+lsortdbf.obj +
+lsortio.obj +
+lsortprm.obj +
+lsortqk.obj +
+lsortsub.obj +
+lssort.obj +
+lsuser.obj +
+lsmerge.obj 
+
+Re-link LSORT with the following statement:
+LINK /stack:8192 @lsort.crf;
+BIND lsort
+
+LSMENU
+
+Enter LSMENU instead of LSORT for the menu driven interface.
+
+LSMENU will display an SAA like menu that makes it easier to use LSORT.
+
+The menuing system uses drop down menus that allow you to:
+
+o   Specify the operations (Sort / Merge) to be performed.
+o   Specify Work Drives
+o   Specify or Pick Input File(s) using a 'point and shoot' interface.
+o   Specify or Pick the Output file.
+o   Select the records type: (Fixed, Variable, Delimitted or dBase)
+o   Specify the Sort Fields using a context sensitive assistant that will
+    either display the names of dBase fields or display a file and let you
+    mark fields.
+o   Save a sort specification in a file for quick re-use.
+o   Load a sort specification.

@@ -1,0 +1,46 @@
+Sample Microfocus Cobol Program Notes
+
+1. The interface module for Microfocus Cobol is 
+SORTMF.BIN 
+
+2. The NUM-RECS and RET-CODE parameters must be 
+defined as 2 byte binary numbers, a type of COMP 
+and a PIC of 3 or 4 characters.
+
+Linking Microfocus Cobol with Opt-Tech Sort
+
+The Opt-Tech Sort interface SORTMF.BIN does not 
+require linking with your program.  The file 
+SORTMF.BIN must be in the same directory as the 
+program calling it.  It is loaded when called.   
+
+
+Microfocus Cobol Filetypes
+
+Sequential files - This type of file contains fixed 
+length records, the record length is that of the 
+longest record defined in the File Descriptor (FD). 
+To sort this type of file, specify your sort 
+control fields and filetype FIXed specifying the 
+record length.
+
+Line Sequential files - This type of file can be 
+sorted if the records are terminated by carriage 
+return, line feed. Files of this type with the TAB 
+character expanded to the next (8*N)+1 position can 
+be sorted by specifying FILETYPE(TAB). As the 
+records are variable length, do not specify a 
+Record length or FIXed filetype.
+
+Relative files - This type of file has two 
+additional bytes appended onto the end of each 
+record.  You can sort a relative file by specifying 
+your Sort control fields and FIXed filetype with 
+the record length + 2 bytes specified.
+
+Indexed files - The data portion of an indexed file 
+is the same structure as a relative file above. 
+Thus you can sort the data portion of an indexed 
+file (like a relative file) and then access it as a 
+relative file or sequential file. 
+

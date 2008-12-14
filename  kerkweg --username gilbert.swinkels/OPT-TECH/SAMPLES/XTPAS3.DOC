@@ -1,0 +1,18 @@
+Sample Turbo Pascal Version 3 Program Notes:
+
+1) Turbo Pascal interfaces with the resident 
+version of Opt-Tech Sort (SORTRES).  As Turbo 
+Pascal does not allow Opt-Tech Sort to dynamically 
+allocate memory, a workarea size must be specified 
+when loading SORTRES before you can calling Opt-
+Tech Sort from Turbo Pascal. 
+
+2) An interface module called SORTBTP.COM is 
+provided to allow you to easily call Opt-Tech Sort 
+from Turbo Pascal.  SORTBTP.COM is an interface 
+module to SORTRES which gets included with your 
+Turbo Pascal program when you compile.
+
+3) See Chapter Four on Memory Considerations and 
+Loading SORTRES.      
+

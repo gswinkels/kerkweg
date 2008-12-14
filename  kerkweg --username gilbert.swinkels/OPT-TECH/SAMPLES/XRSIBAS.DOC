@@ -1,0 +1,56 @@
+Sample Interpreted BASIC Record Passing Program Notes.
+
+1) Lines 155-160 obtain and define the segment 
+address where SORTIBAS is loaded.
+
+2) RSIBAS must be set to 6 as is shown in line 162.
+
+
+Linking Interpreted BASIC with Opt-Tech Sort:
+
+Interpreted BASIC (BASIC, BASICA, GWBASIC) calls 
+Opt-Tech Sort through SORTIBAS which invokes 
+SORTRES.  Both these programs are load into your 
+computers memory and remain there until you reboot
+your computer.  These programs must be loaded by 
+running them at the DOS command prompt before you
+can call Opt-Tech Sort from within your programs.
+
+
+How to load SORTIBAS
+
+SORTIBAS is a resident program that provides the 
+interface between the BASIC interpreter and the 
+resident version of Opt-Tech Sort (SORTRES).
+SORTIBAS is loaded simply by running the program 
+SORTIBAS from DOS.  The format of the command is:
+
+     SORTIBAS [filename]
+
+The filename parameter is optional, it specifies 
+the name of the file that the segment address 
+(DEF SEG) of SORTIBAS  will be written to.  If a 
+filename is not specified the DEF SEG address will 
+be written to a file named SORTIBAS.SEG.  This file 
+contains the address where SORTIBAS is loaded.  
+
+Once SORTIBAS is loaded, it remains in memory until 
+you turn off or reboot your computer.
+
+Since SORTIBAS and SORTRES work together, both 
+programs must be loaded before you can call 
+SORTIBAS from interpreted BASIC.  You can load 
+these programs in either order but if you want to 
+remove SORTRES from memory with the /R parameter, 
+SORTRES must be the last program loaded.
+
+IBM Interpreted BASIC allows Opt-Tech Sort to 
+dynamically allocate memory, so SORTRES can be 
+loaded without specifying a workarea size.  
+
+GWBASIC does not allow Opt-Tech Sort to dynamically 
+allocate memory so specify a workarea size when 
+loading SORTRES. 
+
+
+

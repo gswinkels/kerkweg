@@ -1,0 +1,13 @@
+Sample DeSmet C program notes.
+
+The file SORTDSC.O provides an interface between 
+DeSmet C and the resident version of Opt-Tech Sort 
+(SORTRES.EXE).  SORTRES must be loaded before 
+running a DeSmet C program that calls Opt-Tech 
+Sort.  SORTRES must be loaded with a workarea (/W 
+parameter).  See Chapter 4 for information on 
+loadiing SORTRES.
+
+The interface moudle SORTDSC.O must be BINDed with 
+your program.  Example: BIND XDESMETC SORTDSC
+

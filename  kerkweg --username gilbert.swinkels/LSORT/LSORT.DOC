@@ -1,0 +1,1144 @@
+LSORT 3.20 (C) Copyright London Computing, 1983,1984,1985,1986,1987,1988,1990.
+All rights reserved.
+
+LSORT is a general purpose sort/merge utility written in Microsoft C
+6.0 for DOS 3.30 and above and OS2 1.2 and above written as a family
+mode application.  It runs on IBM PCs and compatibles with at least
+512KB and either two floppy disks or a fixed disk.
+
+LSORT is User Supported Software,  if this program proves useful, please
+make a contribution ($25 suggested) to:
+
+London Computing, P.O. Box 696  Cherry Hill, NJ 08003
+
+Anyone sending a contribution will receive a disk containing the source code
+to LSORT as well as a copy of the LSRT sort filter.  LSRT is similar to the
+DOS SORT filter but works much faster and will sort on multiple fields.
+
+You may make copies of this software and distribute to other users as long as
+there is no charge or other consideration and this notice is not removed or
+bypassed.
+
+LSORT will sort MSDOS and OS2 files and dBase II and dBase III
+databases.  (dBase III memo files are not sorted but .DBF files will be
+sorted.) Each file may be sorted using 1 to 32 sort fields.  The file
+to be sorted may contain either fixed length records, variable length
+records or comma delimited records.  Variable length records are
+records ending with cr/lf.  Comma delimited records are variable length
+records where the fields are also variable length and separated by a
+comma.  Character fields may be enclosed in either single or double
+quotes.  It will merge up to 5 files using 1 to 32 sort fields.  dBase
+databases may not be merged.  Any field may be sorted in either
+ascending or descending sequence.  LSORT allows for three user defined
+field types to be used: X,Y and Z.  You must write your own comparison
+subroutine to compare user defined fields.
+
+The sort knows about:                       field type
+
+character fields (to 127 bytes)                   C
+upper case character fields (sort fields are      U
+   translated to upper case before compare)
+2 byte integers in internal  format               I
+4 byte integers in internal format                L
+floating point numbers (ieee)                     F
+double precision floating point (ieee)            D
+zoned decimal  numbers                            N
+   (Text format numbers,  Decimals are allowed)
+   (LSORT now supports scientific notation as)
+   (well, using E notation, eg. .98 == 9.8E-1)
+1 byte logical fields (dBase II or III)           T
+User defined field type X                         X
+User defined field type Y                         Y
+User defined field type Z                         Z
+
+A zoned decimal number is stored as a character string and may contain
+leading and trailing spaces, minus sign, decimal point and digits.
+
+NOTE: zoned decimal numbers and comma delimitted files sort very slowly!
+The only reasonable field types for comma delimited files are C or N. LSORT
+will accept other field types, but the results are undefined.
+
+
+LSORT will prompt you for all parameters and file names or you may specify
+some or all of the parameters on the command line when you invoke the sort.
+
+The maximum record length is 4096 bytes.  Files will be sorted in memory if
+possible.
+
+Files larger than available memory are sorted in pieces and then merged
+together.  If you have a floppy only system, you should have LSORT on the A
+drive and the file to be sorted on the B drive.  Place a copy of LSORT on an
+otherwise empty disk and use as your A drive.  You may need a formatted empty
+disk for work files on the B drive.
+
+
+SYNTAX:
+
+
+LSORT [-h | -m] -- will prompt you for all necessary information.
+ or
+LSORT [-h | -m] sort specifications--will take the specification specified and
+                                  prompt you for any others.
+
+Specify -h if you are using a fixed (hard disk) for your output and
+merge files.  This will eliminate mount messages.  This is the default
+for LSORT 3.01 and above.  Specify -m if you are using mountable disks
+(floppy, Bournouli, etc.).  This allows you to mount disks to contain
+work files and output files.
+
+ or
+
+LSORT -R  -- will restart a sort.
+
+
+Sort Specifications:
+
+You will be asked to specify either a SORT or MERGE operation.
+
+If you ask for a SORT, you may tell LSORT to use either a QUICKSORT or
+HEAPSORT for internal sorting.  You will also be asked to specify two
+devices to hold merge files if any are needed.  Merge files may be placed on
+floppy disk, hard disk or RAM disk.  The specified drive must be large
+enough to hold the entire input file.  You will be given the opportunity to
+change floppy disks if desired before each merge drive is used and before
+the output file is written.  The program will wait for you to press 'Y'
+before proceeding.  This is not really a problem for unattended sorting
+if you use redirected input or specify all prompts on the command line.
+
+If you specify SORT or MERGE you will be prompted for your input file(s) and
+output file as well as the definition of the key fields to be used in the
+comparisons.  Fields are specified by their starting position and length.
+The types of fields have been listed above.
+
+The sort specifications may be entered on the command line in the order
+requested by LSORT. Each parameter should be separated from the others with
+one or more spaces.  You will not be prompted for any specification on the
+command line (including requests to change disks).
+
+The sort will ask for the following information in the order shown:
+
+Type of Sort:  You may reply:
+S -- for QUICKSORT
+H -- for HEAPSORT
+
+Merge Drive 1:  You may reply with any drive letter, although it is best to
+specify a fixed disk (if any).
+
+
+Merge Drive 2:  This should be different from drive 1 if you are using
+floppy disks, but should be a fixed disk if you have one.
+
+Name of input file: You may specify any name including drive letter and
+path.  Specify :X to use a user specified input routine.
+
+Name of output file:  See above.  Specify :X to use a user specified output
+routine.
+
+File Type (Unless you are sorting a dBase file):  You may reply F for a
+fixed length file (all records are the same length), V for a varying
+length file (records must end with CR LF.) or D for comma delimited files.
+
+
+If you entered 'F' for a fixed file, you will be prompted for the record
+length.
+
+You will then be prompted for field definitions.  Each field definition has
+four parts:    starting position (from 1)  or  starting field (delimited files)
+               field length (in bytes)         (no prompt for delimited files)
+               field type (See above list of valid types)
+               sort order (A--Ascending, D--Descending)
+
+In order to work as efficiently as possible, LSORT does not check the
+starting position of a field against the actual length of a record.  If some
+field starts past the end of a record (e.g. sort field 1 starts in column 10
+but the record is only 8 bytes long), the results will be undefined and most
+certainly not what you want.  Please be careful.
+
+Enter a '0' for the starting position to end the prompt for field
+definitions.
+
+If you are sorting a dBase file, you will see a list of fields.  You may
+specify a field by name, in which case you will only be prompted for the
+sort order or you may enter starting position, length, type and order as
+above.
+
+Following the '0' that ends field definitions, you may specify a series of
+'Y's if you know that the disks currently mounted will hold merge work files
+and the output file.  These may be omitted if you specified the -H flag.
+
+example 1:
+
+Sort file test.dat on positions 1-5,char,ascending and 6-7, binary integer,
+descending.  Use drive C for the work files and put the sorted file in
+test.srt.
+
+Issue the following command:
+
+LSORT S C C test.dat test.srt V 1 5 C A 6 2 H D 0 Y Y Y
+      | | | |        |        | |_____| |_____| | | | |
+      | | | input    output   F |       |       | | | response to mount
+      | | | file     file     i sort    sort    | | | output file message.
+      | | | name     name     l field 1 field 2 | | |
+      | | |                   e starts  starts  | | response to mount 2nd
+      | | merge drive 2         at byte at byte | | merge volume message.
+      | |                     T 1, is 5 6, is 2 | |
+      | merge drive 1         y byte    byte    | response to mount first
+      |                       p char-   long    | merge volume message.
+      sort using              e acter   integer |
+      quicksort                 string  sorted  ends list of sort fields.
+                                ascend- descend-
+                                ing     ing
+
+
+
+Merge Specification:
+
+Enter 'M' to indicate the merge operation.
+
+You will be asked to enter the number of files to be merged followed by 1-5
+files to be merged. They are entered one at a time.
+
+You will be asked to enter a file type, output file and a field list as
+above.
+
+example:
+
+Merge files t1.dat t2.dat and t3.dat on positions 4-7 defined as a character
+field, ascending.
+
+LSORT M 3 t1.dat t2.dat t3.dat   test.mrg V 4 4 c a 0 y y
+      | | |      |      |        |        | |_____| | |_|
+      | | input  input  input    output   | |       | |
+      | | file 1 file 2 file 3   file     | merge   | response to mount
+      | |                                 | field   | messages
+      | merge 3 files                     | 1       |
+      |                                   |         end of list of merge
+      do a merge                          file      fields
+                                          type
+Restarting:
+
+If a sort stops in the middle due to lack of space or is stopped by you by
+pressing ^BREAK, it may be restarted by issuing the LSORT -R command
+providing the dataset(s), SORTPARM.DAT and (DB3PARM.DAT for dBase III files
+only) are still available and further providing all files LSMERGE?.DAT are
+still available. The sort will be restarted at the beginning of the LSSORT
+phase (where the input file is read and sorted) or at the beginning of an
+LSMERGE pass, where several partially sorted files are combined.
+
+User Exits:
+
+You may define your own user exits to read and write data and you may define
+your own compare routines for the standard field types or for user defined
+field types. These routines must be written in Assembler in DeSmet C88 or in
+any other language that can be linked to DeSmet C88.
+
+User input:  (Available for Sorting Only)
+
+Specify :X as the name of the input file. LSORT uses a routine named USERIP
+to read the records to be sorted. You may write your own version of USERIP
+and link it with LSORT to create a custom version containing your own input
+routine.
+
+USERIP is used as follows:
+
+int l,userip();
+char buffer[...];
+
+l = userip(buffer);
+
+USERIP must return the length of the record read which must be <= 4096 or -1
+for end of file. If you have specified V type files, USERIP must return a
+string ending with a '\0'. The string length must include the trailing '\0'.
+
+User Output:
+
+Specify :X as the name of the output file. LSORT uses a routine called
+USEROP to write to the :X file. You may write your own user output routine
+to be used to write the final sorted or merged output by creating a custom
+version of USEROP and relinking LSORT to create a custom LSORT. USEROP works
+as follows:
+
+int buflen;
+char buffer[...];
+
+userop(buffer,buflen);     /* userop must write buflen bytes from buffer */
+                           /* buflen == 0 means that you want to write a
+                              0 terminated string */
+userop(NULL,-1);           /* userop must perform end of file processing */
+
+
+Sample versions of userip and userop appear below:
+/* Userip to return a varying length string */
+#define CPMEOF 26
+#include "stdio.h"
+userip(s)
+char *s;
+{
+ static char firsttime = 1;
+ static int inchan;
+ char *fgets();
+ int l;
+ /* input is string buffer, max length 4k, 4k always available      */
+ /* this routine must return length of string or EOF if end of file */
+ /* example follows: (Note length of string includes 0 byte at end  */
+      if (firsttime) {
+            firsttime=0;
+            inchan=fopen("usertest.dat","r");
+      }
+      if (fgets(s,4096,inchan))
+            return strlen(s)+1;
+      else
+            return EOF;
+}
+
+/* Userip to return a fixed length string */
+#define CPMEOF 26
+#define STRLEN 128
+#include "stdio.h"
+userip(s)
+char *s;
+{
+ static char firsttime = 1;
+ static int inchan;
+ char *fgets();
+ int c,l;
+ /* input is string buffer, max length 4k, 4k always available      */
+ /* this routine must return length of string or EOF if end of file */
+ /* example follows: (Note length of string includes 0 byte at end  */
+      if (firsttime) {
+            firsttime=0;
+            inchan=fopen("usertest.dat","r");
+      }
+      if ((l=read(inchan,buffer,STRLEN)) == STRLEN)
+            return STRLEN;
+      else
+            return EOF;
+}
+
+
+
+
+
+
+
+
+
+userop(s,l)
+char *s;
+int l;
+{
+/* s is string to write, l is length or 0 if 0 terminated or -1 for close */
+      static char firsttime = 1;
+      static int otchan;
+      if (firsttime) {
+            firsttime = 0;
+            otchan = fopen("usertest.srt","w");
+      }
+      
+      if (l == -1 || s == NULL)
+            fclose(otchan);
+      else if (l) /* write an F type record */
+            while(l--) fputc(*s++,otchan);
+      else fputs(s,otchan); /* write a V type record */
+}
+            
+
+User Compare Routines:
+
+You may define up three user defined fields: X,Y,Z.  You must write a compare
+routine for each field type used.  The routine names are:
+
+      sxcmp --  for field type X.
+      sycmp --  for field type Y.
+      szcmp --  for field type Z.
+
+The compare routines are called with three arguments, the address of the
+first field, the address of the second field and the field length. The
+routine must return 1 if field 1 < field 2, 0 if field1 == field2 and -1 if
+field1 > field2.
+
+Sample routines are shown below:
+
+sxcmp(a,b,l)
+long int *a,*b;
+int l;
+{ /* this routine compares two long integers */
+long int c;
+c = *a - *b;
+return c <0 ? -1 : c == 0 ? 0 : 1;
+}
+
+sycmp(a,b,l)
+int *a,*b;
+int l;
+{ /* this routine compares two integers (2 bytes) */
+int c;
+c = *a - *b;
+return c <0 ? -1 : c == 0 ? 0 : 1;
+}
+
+
+szcmp(a,b,l)
+float *a,*b;
+int l;
+{ /* this routine compares two floating numbers */
+float c;
+c = *a - *b;
+return c<0 ? -1 : c == 0 ? 0 : 1;
+}
+
+
+
+Linking user written routines:
+
+For MicroSoft C.
+
+Compile your user written routines using Microsoft C 6.0 to create .OBJ
+files.  Use the -Lp -Fb options.  Modify the file lsort.crf to include
+your routines before LSORTCMP:
+
+lsort.obj +
+                  <=== place your routines here       
+lsortcmp.obj +
+lsortdbf.obj +
+lsortio.obj +
+lsortprm.obj +
+lsortqk.obj +
+lsortsub.obj +
+lssort.obj +
+lsuser.obj +
+lsmerge.obj +
+
+
+Re-link LSORT with the following statement:
+LINK /stack:4096 @lsort.crf;
+BIND LSORT
+
+LSMENU
+
+Enter LSMENU instead of LSORT for the menu driven interface.  Note LSMENU will
+not run under OS2.
+
+LSMENU will display an SAA like menu that makes it easier to use LSORT.
+
+The menuing system uses drop down menus that allow you to:
+
+o   Specify the operations (Sort / Merge) to be performed.
+o   Specify Work Drives
+o   Specify or Pick Input File(s) using a 'point and shoot' interface.
+o   Specify or Pick the Output file.
+o   Select the records type: (Fixed, Variable, Delimitted or dBase)
+o   Specify the Sort Fields using a context sensitive assistant that will
+    either display the names of dBase fields or display a file and let you
+    mark fields.
+o   Save a sort specification in a file for quick re-use.
+o   Load a sort specification.
+
+Within LSMENU, the following conventions apply:
+
+You select an option by typing the highlighted letter in the option name or
+by moving the cursor to that option using the arrow keys, then pression
+Enter.
+
+You quit any menu option by pressing ESC.  You may use ESC to exit the
+program if desired.
+
+Selectable options appear as blue on white with one blue letter highlighted.
+
+Unavailable options appear as bright white on white.  An unavailable option
+becomes available as a by product of selecting other options.
+
+When LSMENU is entered, the following menu is displayed:
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                 ³   HeapSort    ³
+                                 ³   QuickSort   ³
+                                 ³   Merge [ ]   ³
+                                 ³   Work Drive  ³
+                                 ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+The Sortfield and Record Options will display as white on white.  This color
+combination indicates that the option is not currently available.
+
+The Options menu drops down automatically so that you select the type of Sort /
+Merge to perform: Heap, Quick or Merge (2-5 files).  When you make your sel-
+ection, the Options window closes automatically and the Record and Sortfield
+options appear as blue on white, indicating that they are available.  If you
+wish to close this or any menu without selecting anything, press ESC.
+
+You may then select any other option as desired.  The recommended sequence is
+File -- Input,  File -- Output,  Record, Sortfield and File -- Go.
+
+The following main menu options are available:
+
+File, Record, Sortfield, Options, Help and About.
+
+File Menu Option
+----------------
+The File option displays the following:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÚÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ³ New    ³
+  ³ Load   ³
+  ³ Save   ³
+  ³ Input  ³
+  ³ Output ³
+  ³ Go     ³
+  ³ Quit   ³
+  ÀÄÄÄÄÄÄÄÄÙ
+
+New
+---
+Select New to clear the sort specification.  This resets any previous
+specifications and allows you to start over.
+
+Load
+----
+Select Load to use an existing sort specification that was saved by the
+Save option.  When Load is selected, the following is displayed:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÚÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ³ New    ³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Load Control File ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  ³ Load   ³³ Current Selection:                                               ³
+  ³ Save   ³³                                                                  ³
+  ³ Input  ³³ ÜÜÜÜÜÜÜÜÜÜÜÜÜ                  ÜÜÜÜÜÜ                   ÜÜÜÜÜÜÜÜ ³
+  ³ Output ³³ ÛSelect FileÛ                  Û Ok Û                   ÛCancelÛ ³
+  ³ Go     ³³ ßßßßßßßßßßßßß                  ßßßßßß                   ßßßßßßßß ³
+  ³ Quit   ³ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ÀÄÄÄÄÄÄÄÄÙ
+
+            ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄFile Selector ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+            ³Directory of:                                                   ³
+            ³D:\MSC\LSORTX3\*.LSC                                            ³
+            ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³
+            ³ <KEY-IT-IN>     ..                                             ³
+            ³ <-A->           TEST.LSC                                       ³
+            ³ <-B->                                                          ³
+            ³ <-C->                                                          ³
+            ³ <-D->                                                          ³
+            ³ <-E->                                                          ³
+            ³ <-F->                                                          ³
+            ³ <-G->                                                          ³
+            F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+Two new windows are displayed, the Load Control File window and the File
+Selector windows.  The File Selector window will be active, with any files
+of type .LSC displayed from the current directory.  You can use the file
+selector to move to any drive or directory and pick a file to be used as the
+control file or you may select <KEY-IT-IN> to enter a filename directly.  More
+information about the File Selector is available in file SELEFILE.DOC.
+
+To Select a file, move the cursor to the desired file and press Enter.
+To Select a drive, move the cursor to a drive indicator, e.g. <-C->, and
+press Enter.
+
+To Select a directory move the cursor to a directory entry, e.g. .., and
+press Enter.
+
+To Quit without selecting a file, press ESC.
+
+Pressing Enter or ESC closes the File Selector window and displays the
+selected file, if any, under Current Selection in the Load Control File
+window.  The Load Control File window has three options:  Select, Ok and
+Cancel.  Choose Select to redisplay the File Selector.  Choose Ok to
+approve the Current Selection and load the control file or choose Cancel
+to return to the Files Menu without selecting a control file.
+
+Selecting a control file that does not contain control information will
+seriously confuse LSMENU.  Don't do it.
+
+If you choose OK, the control file will be loaded and your input file,
+output file, Options, Record and Sortfield menus will be set to the values
+that they had when the control file was created.
+
+Save
+----
+Select Save to save your current specifications as a control file which can
+be loaded from a subsequent invokation of LSMENU.  The following is displayed:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÚÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ³ New    ³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Save Control File ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  ³ Load   ³³ Current Selection:                                               ³
+  ³ Save   ³³                                                                  ³
+  ³ Input  ³³ ÜÜÜÜÜÜÜÜÜÜÜÜÜ                 ÜÜÜÜÜÜ                    ÜÜÜÜÜÜÜÜ ³
+  ³ Output ³³ ÛSelect FileÛ                 Û Ok Û                    ÛCancelÛ ³
+  ³ Go     ³³ ßßßßßßßßßßßßß                 ßßßßßß                    ßßßßßßßß ³
+  ³ Quit   ³ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ÀÄÄÄÄÄÄÄÄÙ
+
+            ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄFile Selector ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+            ³Directory of:                                                   ³
+            ³C:\TMP\*.*                                                      ³
+            ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³
+            ³ <KEY-IT-IN>     ..              LSORT.EXE       LSORTPRM.OBJ   ³
+            ³ <-A->           DUFI.DOC        LSORT.HLP       LSORTQK.OBJ    ³
+            ³ <-B->           DUFI.EXE        LSORT.OBJ       LSORTSUB.OBJ   ³
+            ³ <-C->           DVINT.OBJ       LSORT311.TXT    LSORTX3.EXE    ³
+            ³ <-D->           FILELIST.TXT    LSORTCMP.OBJ    LSRTOS2.EXE    ³
+            ³ <-E->           LSMENU.EXE      LSORTDBF.OBJ    LSSORT.OBJ     ³
+            ³ <-F->           LSMERGE.OBJ     LSORTIO.OBJ     LSUSER.OBJ     ³
+            ³ <-G->           LSORT.CRF       LSORTLNK.BAT    SCRSUBS.OBJ    ³
+            F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ PgDn Ù
+
+The Save Control File window shows the current control file, if any.  The File
+Selector window shows all the files in the current directory.  You may select
+and existing file to save the sort specification to or use <KEY-IT-IN> to enter
+a new file to contain the sort specification.  If you select an existing file,
+it will be overwritten with the sort specification and its old contents will
+be gone.  BE CAREFUL.
+
+As above, once a file name has been entered, you may choose Select, Ok or
+Cancel from the Save Control File window.  Ok will save the sort specification.
+Cancel will return to the File menu without saving and Select will redisplay
+the File Selector.
+
+Input
+-----
+This option is only activated if HeapSort, QuickSort or Merge has been selected
+from the Options Menu.  When you are sorting, the following will be displayed:
+
+Input-Sort
+----------
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÚÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ³ New    ³
+  ³ Load   ³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Select Input File ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  ³ Save   ³³ Current Selection:                                               ³
+  ³ Input  ³³                                                                  ³
+  ³ Output ³³ÜÜÜÜÜÜÜÜÜÜÜÜÜ                 ÜÜÜÜÜÜ                      ÜÜÜÜÜÜÜÜ³
+  ³ Go     ³³ÛSelect FileÛ                 Û Ok Û                      ÛCancelÛ³
+  ³ Quit   ³³ßßßßßßßßßßßßß                 ßßßßßß                      ßßßßßßßß³
+  ÀÄÄÄÄÄÄÄÄÙÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+            ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄFile Selector ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+            ³Directory of:                                                   ³
+            ³D:\MSC\LSORTX3\*.*                                              ³
+            ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³
+            ³ <KEY-IT-IN>     ..              LSMENU.C        LSORTX3.H      ³
+            ³ <-A->           CDRIVER.C       LSORT.H         LSORTX3.MAK    ³
+            ³ <-B->           CDRIVER.OBJ     LSORT311.TXT    LSORTX3.OBJ    ³
+            ³ <-C->           CSEXTERN.H      LSORTBAK.ZIP    LSORTX3.OLD    ³
+            ³ <-D->           CSUBS.C         LSORTOS2.ZIP    LSORT_DF.C     ³
+            ³ <-E->           CSUBS.OBJ       LSORTX3.C       LSORT_DF.OBJ   ³
+            ³ <-F->           DUFI$$$$.$$$    LSORTX3.CRF     LSORT_FT.C     ³
+            ³ <-G->           DUFI.C          LSORTX3.EXE     LSORT_FT.OBJ   ³
+            F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ PgDn Ù
+
+Use the File Selector as above to choose a file to sort and return to the
+Select Input File window where you may choose Ok, to set the input file to
+your selection, Cancel to quit without selecting an input file or Select File
+to redisplay the File Selector.
+
+Input - Merge
+-------------
+
+If you are merging, the following is displayed:
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÚÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ³ New    ³
+  ³ Load   ³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄSelect Merge FilesÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  ³ Save   ³³# Current Selection:                                              ³
+  ³ Input  ³³1                                                                 ³
+  ³ Output ³³2                                                                 ³
+  ³ Go     ³³3                                                                 ³
+  ³ Quit   ³³4                                                                 ³
+  ÀÄÄÄÄÄÄÄÄÙ³5                                                                 ³
+            ³  Select File Number:                                             ³
+            ³  ÜÜÜÜÜ    ÜÜÜÜÜ    ÜÜÜÜÜ    ÜÜÜÜÜ    ÜÜÜÜÜ    ÜÜÜÜÜÜ   ÜÜÜÜÜÜÜÜ  ³
+            ³  Û 1 Û    Û 2 Û    Û 3 Û    Û 4 Û    Û 5 Û    Û Ok Û   ÛCancelÛ  ³
+            ³  ßßßßß    ßßßßß    ßßßßß    ßßßßß    ßßßßß    ßßßßßß   ßßßßßßßß  ³
+            ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+Choose the merge file to select by selecting menu options 1,2,3,4 or 5.  If you
+select any of these options, the File Selector will be displayed and you can
+use it to pick the merge file.  Repeat until all necessary merge files have
+been selected, then choose Ok to return to the File menu.
+
+Output
+------
+Use this option to specify the name of your output file which will contain
+the sorted or merged data.  When this option is selected, the following is
+displayed:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÚÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  ³ New    ³
+  ³ Load   ³
+  ³ Save   ³ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ Select Output File ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+  ³ Input  ³³ Current Selection:                                               ³
+  ³ Output ³³                                                                  ³
+  ³ Go     ³³ ÜÜÜÜÜÜÜÜÜÜÜÜÜ                  ÜÜÜÜ                     ÜÜÜÜÜÜÜÜ ³
+  ³ Quit   ³³ ÛSelect FileÛ                  ÛOkÛ                     ÛCancelÛ ³
+  ÀÄÄÄÄÄÄÄÄÙ³ ßßßßßßßßßßßßß                  ßßßß                     ßßßßßßßß ³
+            ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+            ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄFile Selector ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+            ³Directory of:                                                   ³
+            ³C:\TMP\*.*                                                      ³
+            ³ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ³
+            ³ <KEY-IT-IN>     ..              LSORT.EXE       LSORTPRM.OBJ   ³
+            ³ <-A->           DUFI.DOC        LSORT.HLP       LSORTQK.OBJ    ³
+            ³ <-B->           DUFI.EXE        LSORT.OBJ       LSORTSUB.OBJ   ³
+            ³ <-C->           DVINT.OBJ       LSORT311.TXT    LSORTX3.EXE    ³
+            ³ <-D->           FILELIST.TXT    LSORTCMP.OBJ    LSRTOS2.EXE    ³
+            ³ <-E->           LSMENU.EXE      LSORTDBF.OBJ    LSSORT.OBJ     ³
+            ³ <-F->           LSMERGE.OBJ     LSORTIO.OBJ     LSUSER.OBJ     ³
+            ³ <-G->           LSORT.CRF       LSORTLNK.BAT    SCRSUBS.OBJ    ³
+            F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ PgDn Ù
+
+The File Selector window is active and you can pick an existing file to hold
+the output of the sort or merge or you can choose <KEY-IT-IN> to enter a new
+file name.  If you select an existing file, it will be overwritten when the
+sort / merge is run.  BE CAREFUL.  After specifying a file, the Select Ouput
+File window becomes active and you may choose Ok to accept the file name,
+Cancel to quit without accepting the file name or Select File to redisplay
+the File Selector.
+
+GO
+--
+Select this option to perform the sort or merge.  This option should be
+selected ONLY after specifying HeapSort, QuickSort or Merge, Input File(s),
+Output File(s), Record Type and Sortfields.  If you select GO before all of
+the necessary information has been specified, an error message will be dis-
+played showing those pieces of information that are missing.  The message
+will be similar to that shown below:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³                                                         ³
+³ Unable to RUN Sort because:                             ³
+³                                                         ³
+³ Sort or Merge not selected on Options Screen.           ³
+³ No sort input file was specified.                       ³
+³ No output file was specified.                           ³
+³ No sort/merge fields were defined.                      ³
+³                                                         ³
+³                                                    ÜÜÜÜ ³
+³                                                    ÛOkÛ ³
+³                                                    ßßßß ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+If everything has bee specified, the menu will disapear and standard LSORT
+output will be displayed, the file(s) will be sorted or merged and control
+will return to the standard DOS prompt.
+
+Quit
+----
+Select this option to quit the menu system without running a Sort.  You will
+be given a chance to change your mind when the following is displayed:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Quit LSMENU ? ³
+³ ÜÜÜÜ ÜÜÜÜÜÜÜÜ ³
+³ ÛOkÛ ÛCancelÛ ³
+³ ßßßß ßßßßßßßß ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+If you select Ok, you will exit to the command line.  If you select Cancel,
+you will return to the File Menu.
+
+
+Record Menu Option
+------------------
+
+The record option allows you to pick the type of record to be sorted.  The
+following will be displayed:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÄÄÄÄÄÄÄÄÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+          ³   Fixed    0  ³
+          ³ û Variable    ³
+          ³   Delimited   ³
+          ³   dBase       ³
+          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+Use this menu to pick the record type.  The default type is Variable and is
+shown marked with a check.  Variable records are variable length, contain
+ASCII characters only and are terminated with a CR-LF.  To select variable,
+type V or move the cursor to the variable line and press Enter.  If the check
+mark is on a different type it will be moved to the Variable line.  Press
+ESC to return to the main menu.
+
+You may also select Fixed, Delimited or dBase.  If you select Fixed, you will
+be prompted for the number of characters in the record.  Enter the number and
+press Enter.  (Fixed records are all the same length.  You must tell the LSMENU
+what that length is.)  The check mark will move to the Fixed Line and the
+record length will be displayed next to the word fixed.  Press ESC to return
+to the main menu.
+
+If you select Delimited (fields are comma delimitted) or dBase, the check mark
+will move to the appropriate line.  Press ESC to return to the main menu.
+
+SortField Menu Option
+---------------------
+Select Sortfield to specify the fields to sort on.  You should specify
+Record Type before selecting Sortfields.  A different menu is displayed
+depending on the record type.
+
+In all cases, you must first specify a sort field by moving the blue
+cursor to the desired field number.  You may then Add a new field, pushing
+all the current specification and subsequent specifications down one slot,
+Delete a field, moving following specifications up one slot or Edit the field.
+
+To quit the SortFields Menu, press ESC.
+
+Fixed or Variable Records
+-------------------------
+If the record type is Fixed or Variable the following screen is displayed with
+a high lighted cursor set to Sort Field 1.
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÃÄÄÄÄÄÄÒÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÒÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄ´ÄÄÄÄÙ
+³Sort  ºStarting³Field ³Field³Asc/³     ³Sort  ºStarting³Field ³Field³Asc/³
+³Field ºPosition³Length³Type ³Dec.³     ³Field ºPosition³Length³Type ³Dec.³
+ÆÍÍÍÍÍÍÎÍÍÍÍÍÍÍÍØÍÍÍÍÍÍØÍÍÍÍÍØÍÍÍÍµ     ÆÍÍÍÍÍÍÎÍÍÍÍÍÍÍÍØÍÍÍÍÍÍØÍÍÍÍÍØÍÍÍÍµ
+³ __1_ º      0 ³    0 ³     ³    ³     ³  17  º      0 ³    0 ³     ³    ³
+³   2  º      0 ³    0 ³     ³    ³     ³  18  º      0 ³    0 ³     ³    ³
+³   3  º      0 ³    0 ³     ³    ³     ³  19  º      0 ³    0 ³     ³    ³
+³   4  º      0 ³    0 ³     ³    ³     ³  20  º      0 ³    0 ³     ³    ³
+³   5  º      0 ³    0 ³     ³    ³     ³  21  º      0 ³    0 ³     ³    ³
+³   6  º      0 ³    0 ³     ³    ³     ³  22  º      0 ³    0 ³     ³    ³
+³   7  º      0 ³    0 ³     ³    ³     ³  23  º      0 ³    0 ³     ³    ³
+³   8  º      0 ³    0 ³     ³    ³     ³  24  º      0 ³    0 ³     ³    ³
+³   9  º      0 ³    0 ³     ³    ³     ³  25  º      0 ³    0 ³     ³    ³
+³  10  º      0 ³    0 ³     ³    ³     ³  26  º      0 ³    0 ³     ³    ³
+³  11  º      0 ³    0 ³     ³    ³     ³  27  º      0 ³    0 ³     ³    ³
+³  12  º      0 ³    0 ³     ³    ³     ³  28  º      0 ³    0 ³     ³    ³
+³  13  º      0 ³    0 ³     ³    ³     ³  29  º      0 ³    0 ³     ³    ³
+³  14  º      0 ³    0 ³     ³    ³     ³  30  º      0 ³    0 ³     ³    ³
+³  15  º      0 ³    0 ³     ³    ³     ³  31  º      0 ³    0 ³     ³    ³
+³  16  º      0 ³    0 ³     ³    ³     ³  32  º      0 ³    0 ³     ³    ³
+ÀÄÄÄÄÄÄĞÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÙ     ÀÄÄÄÄÄÄĞÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÙ
+
+ESC=Exit, F1=Help, ENTER=Edit Field, INS=Insert Field, DEL=Delete Field
+
+You may specify up to 32 different fields for sorting or merging.  A sort field
+specification consists of four entries, the field starting position (relative
+to 1), the field length, the field type and the sort order.  To select a sort
+field, move the cursor to that field number.  You may now press Enter to edit
+that sort field, Del to delete that sort field or Ins to insert a new field.
+
+Deleting a sort field will move all following fields up one slot.  Inserting
+a sort field moves all fields down one slot and creates an empty specification
+at the selected field.
+
+Editing a sort field allows you to enter or change starting position, field
+length, field type and sort order.
+
+The four parts of a sort field specification consist of:
+
+o    Starting Position, which indicates where the field starts relative to the
+first character in the record. Position 1 is the first charactter, position 2
+the second and so forth.
+
+o   Field Length indicates how many characters or bytes are in the field.
+
+o   Field Type indicates the type of field.  If you know the field type, just
+enter the correct code. If you don't know the field type, press F1 and the
+following will pop up:
+
+ÕÍÍÍÍÍÍÍSelect Field TypeÍÍÍÍÍÍ¸     Choose the desired field type by moving
+³Character (case is signficant)³     the cursor and pressing enter or by
+³Double floating point         ³     pressing the first letter on the line.
+³Floating point (single)       ³
+³Integer (16 bit signed)       ³     Once selected, the pop up window will
+³Long (32 bit signed integer)  ³     close and the desired code will be
+³Numeric (ASCII text)          ³     shown in the input field.
+³True/false (dBase logical)    ³
+³Upper (character case ignored)³
+³X (user defined field type X) ³
+³Y (user defined field type Y) ³
+³Z (user defined field type Z) ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+o   Sort Order (Asc/Dec) indicates whether the field should be sorted in
+ascending or descending sequence.  If you leave it flank, press F1 or enter
+and invalid menu, a small pop up appears showing good values.
+
+If you press F1 while in the Starting Position or Field Length columns, a
+special field selector window will be displayed.  You can use this window
+to display the first few lines of the file to be sorted.  You can display
+data in text or dump format.  The window is shown below:
+
+ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+ºLSORTX3.MAK                                                   R1      , C1    º
+º------------------------------------------------------------------------------º
+ºPROJ   =LSORTX3                                                               º
+ºDEBUG  =1                                                                     º
+ºCC     =cl                                                                    º
+ºCFLAGS_G   = /AS /W3                                                          º
+º------------------------------------------------------------------------------º
+º   PgUp PgDn Home End, ^Home-Top, ^End-Bot, F1-Help, F3-Hex, F5-Mark, ESC-Quitº
+ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+You can position to any record using the Up arrow, Down arrow, PgUp and PgDn.
+You can position to any character in the record using the Left arrow and Right
+arrow.  In order to mark a field, use the Left and Right arrows to position to
+the first character of the field, then press F5.  Continue using the Right
+arrow to mark each charcter in turn.  Marked characters are shown in reverse
+video.  When you have marked the last character of the field, press Enter.
+
+You may perform this operation as many times as you desire.  Only the last
+mark is remembered.  Press ESC to return to the Sortfields screen.  The start-
+ing position and field length will be entered into the screen.
+
+Delimitted Records
+------------------
+If your record type is Delimited, the following will be displayed:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÃÄÄÄÄÄÄÒÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÒÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÙ
+³Field ºField  ³Field³Asc/³ Delimitted  ³Field ºField  ³Field³Asc/³
+³NumberºPos'n  ³Type ³Dec.³    File     ³NumberºPos'n  ³Type ³Dec.³
+ÆÍÍÍÍÍÍÎÍÍÍÍÍÍÍØÍÍÍÍÍØÍÍÍÍµ             ÆÍÍÍÍÍÍÎÍÍÍÍÍÍÍØÍÍÍÍÍØÍÍÍÍµ
+³   1  º      0³     ³    ³             ³  17  º      0³     ³    ³
+³   2  º      0³     ³    ³             ³  18  º      0³     ³    ³
+³   3  º      0³     ³    ³             ³  19  º      0³     ³    ³
+³   4  º      0³     ³    ³             ³  20  º      0³     ³    ³
+³   5  º      0³     ³    ³             ³  21  º      0³     ³    ³
+³   6  º      0³     ³    ³             ³  22  º      0³     ³    ³
+³   7  º      0³     ³    ³             ³  23  º      0³     ³    ³
+³   8  º      0³     ³    ³             ³  24  º      0³     ³    ³
+³   9  º      0³     ³    ³             ³  25  º      0³     ³    ³
+³  10  º      0³     ³    ³             ³  26  º      0³     ³    ³
+³  11  º      0³     ³    ³             ³  27  º      0³     ³    ³
+³  12  º      0³     ³    ³             ³  28  º      0³     ³    ³
+³  13  º      0³     ³    ³             ³  29  º      0³     ³    ³
+³  14  º      0³     ³    ³             ³  30  º      0³     ³    ³
+³  15  º      0³     ³    ³             ³  31  º      0³     ³    ³
+³  16  º      0³     ³    ³             ³  32  º      0³     ³    ³
+ÀÄÄÄÄÄÄĞÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÙ             ÀÄÄÄÄÄÄĞÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÙ
+
+ESC=Exit, F1=Help, ENTER=Edit Field, INS=Insert Field, DEL=Delete Field
+
+You select fields to edit, insert or delete as described above. You may specify
+up to 32 different fields for sorting or merging.  Field Pos'n indicates which
+comma seperated field is to be sorted.  Fields are numbered from 1.  Field Type
+indicates the type of field.  If you know the field type, just enter the
+correct code.  If you don't know the field type, press F1 and the following
+will pop up:
+
+ÕÍÍÍÍÍÍÍSelect Field TypeÍÍÍÍÍÍ¸     Choose the desired field type by moving
+³Character (case is signficant)³     the cursor and pressing enter or by
+³Double floating point         ³     pressing the first letter on the line.
+³Floating point (single)       ³
+³Integer (16 bit signed)       ³     Once selected, the pop up window will
+³Long (32 bit signed integer)  ³     close and the desired code will be
+³Numeric (ASCII text)          ³     shown in the input field.
+³True/false (dBase logical)    ³
+³Upper (character case ignored)³     The Asc/Dec field should be set to A
+³X (user defined field type X) ³     to sort from low to high or D to sort
+³Y (user defined field type Y) ³     from high to low.  If you enter anything
+³Z (user defined field type Z) ³     else a small pop up window will appear,
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ     showing the two valid choices.
+
+If you press F1 while in the Field Pos'n column, a special field selector
+window will be displayed.  You can use this window to display the first few
+lines of the file to be sorted.  You can display data in text or dump format.
+The window is shown below:
+
+ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+ºLSORTX3.MAK                                                   R1      , C1    º
+º------------------------------------------------------------------------------º
+ºPROJ   ,LSORTX3                                                               º
+ºDEBUG  ,1                                                                     º
+ºCC     ,cl                                                                    º
+ºCFLAGS_G,/AS, /W3                                                             º
+º------------------------------------------------------------------------------º
+º   PgUp PgDn Home End, ^Home-Top, ^End-Bot, F1-Help, F3-Hex, F5-Mark, ESC-Quitº
+ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+You can position to any record using the Up arrow, Down arrow, PgUp and PgDn.
+You can position to any character in the record using the Left arrow and Right
+arrow.  In order to mark a field, use the Left and Right arrows to position to
+the first character of the field, then press F5.  Continue using the Right
+arrow to mark each charcter in turn.  Marked characters are shown in reverse
+video.  When you have marked the last character of the field, press Enter.
+
+You may perform this operation as many times as you desire.  Only the last
+mark is remembered.  Press ESC to return to the Sortfields screen.  The start-
+ing position and field length will be entered into the screen.
+
+dBase Records
+-------------
+The following screen is displayed for dBase records.
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÃÄÄÄÄÄÄÒÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÄÄÒÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄ´
+³Sort  ºField Name ³Field ³Field³Asc/³ d  ³Sort  ºField Name ³Field ³Field³Asc/³
+³Field ºor Position³Length³Type ³Dec.³ B  ³Field ºor Position³Length³Type ³Dec.³
+ÆÍÍÍÍÍÍÎÍÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍØÍÍÍÍÍØÍÍÍÍµ a  ÆÍÍÍÍÍÍÎÍÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍØÍÍÍÍÍØÍÍÍÍµ
+³   1  º           ³    0 ³     ³    ³ s  ³  17  º           ³    0 ³     ³    ³
+³   2  º           ³    0 ³     ³    ³ e  ³  18  º           ³    0 ³     ³    ³
+³   3  º           ³    0 ³     ³    ³    ³  19  º           ³    0 ³     ³    ³
+³   4  º           ³    0 ³     ³    ³ F  ³  20  º           ³    0 ³     ³    ³
+³   5  º           ³    0 ³     ³    ³ i  ³  21  º           ³    0 ³     ³    ³
+³   6  º           ³    0 ³     ³    ³ l  ³  22  º           ³    0 ³     ³    ³
+³   7  º           ³    0 ³     ³    ³ e  ³  23  º           ³    0 ³     ³    ³
+³   8  º           ³    0 ³     ³    ³    ³  24  º           ³    0 ³     ³    ³
+³   9  º           ³    0 ³     ³    ³    ³  25  º           ³    0 ³     ³    ³
+³  10  º           ³    0 ³     ³    ³    ³  26  º           ³    0 ³     ³    ³
+³  11  º           ³    0 ³     ³    ³    ³  27  º           ³    0 ³     ³    ³
+³  12  º           ³    0 ³     ³    ³    ³  28  º           ³    0 ³     ³    ³
+³  13  º           ³    0 ³     ³    ³    ³  29  º           ³    0 ³     ³    ³
+³  14  º           ³    0 ³     ³    ³    ³  30  º           ³    0 ³     ³    ³
+³  15  º           ³    0 ³     ³    ³    ³  31  º           ³    0 ³     ³    ³
+³  16  º           ³    0 ³     ³    ³    ³  32  º           ³    0 ³     ³    ³
+ÀÄÄÄÄÄÄĞÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÙ    ÀÄÄÄÄÄÄĞÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÙ
+
+ESC=Exit, F1=Help, ENTER=Edit Field, INS=Insert Field, DEL=Delete Field
+
+You specify a sort field by moving the cursor to the desired field.  You may
+then insert, delete or edit fields as described above.
+
+You may specify up to 32 sort fields.  Four pieces of information are required
+for each sort field:  the dBase field name or starting position, the field
+length, the field type and the sort order.
+
+If you are in the Field Name column and press F1, a list of sort fields will
+be displayed.  The list will be similar to the following:
+
+ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»     You can select a field from the list by moving
+ºDatabase Name: NOTES.DB  º     the cursor to the desired field and pressing
+ÇÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄ¶     Enter.  When a field is selected, the name
+ºField Name ³Type³Len ³Decº     length and type are entered automatically.
+ÌÍÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÏÍÍÍÍÏÍÍÍ¹
+ºTEXT         C    65    0º     You may change the selected type or length in
+ºTREATNO      C     9    0º     order to specify if you desire.  Increasing
+ºSEQNO        N     3    0º     the field length will include part of the
+º                         º     following field.  Decreasing the field length
+º                         º     will sort on only the first part of a field.
+º                         º
+º                         º     Changing the field type from N to C will cause
+º                         º     a numeric field to be sorted as though it
+º                         º     contained characters.
+º                         º
+º                         º     If you wish to sort on middle or end positions
+º                         º     of a field, you may do so by entering the
+º                         º     starting position of the field to sort relative
+º                         º     to the first character of the first field.
+º                         º
+º                         º     The first field always starts in position 2.
+ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+You can find out where a field starts, e.g. SEQNO, by entering the field name
+in an unused sort field line, then quitting the sort field menu, changing the
+Record Type to Variable and redisplaying the SortField menu.  All field names
+will be replaced by their starting position.  Note where the field starts, exit
+SortFields, change the Record Type back to dBase and re-enter the SortField
+menu.  You will again see field names.  Replace the name, e.g. SEQNO, with the
+starting position plus the desired offset of the sub field.  In the above
+example, SEQNO starts at position 76.  If you wish to sort on the second and
+third positions of SEQNO only, Enter 77 for the Field Name and 2 for the
+length.
+
+Options Menu Option
+-------------------
+
+Select the Options menu option to specify the type of operation to be per-
+formed (HeapSort, QuickSort or Merge) and to specify work drives if you have
+selected a Sort option.  The Options display was described above.
+
+If you select a Sort Option, you can use the Work Drive menu item to indicate
+where your sort work drives are to be placed.  The default is drive C.
+
+If you select Merge, you will be asked for the number of files to merge.  You
+may pick a number between 2 and 5.  Selecting the Merge option disables the
+Work Drives.
+
+
+Help Menu Option
+----------------
+
+This option displays a one page help summary describing the menuing system.
+
+
+About Menu Option
+-----------------
+The About option displays the following:
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄLSMENU 1.00ÄÄ¿
+³   File    Record    Sortfield    Options                      Help   About   ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                  ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                  ³ LSMENU Version 1.00                          ³
+                  ³    Copyright LONDON COMPUTING 1989           ³
+                  ³                                              ³
+                  ³ LSORT Version 3.10                           ³
+                  ³    Copyright LONDON COMPUTING 1983 to 1989   ³
+                  ³                                              ³
+                  ³ All rights reserved.                         ³
+                  ³                                              ³
+                  ³ LSMENU and LSORT are User Supported Software ³
+                  ³ Registration ($25.00) required.  Please send ³
+                  ³ registration fees to:                        ³
+                  ³ LONDON COMPUTING                      ÜÜÜÜÜÜ ³
+                  ³ P.O. Box 696                          Û OK Û ³
+                  ³ Cherry Hill, NJ  08003                ßßßßßß ³
+                  ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+
+You can close the about window by pressing the letter O, pressing ENTER or
+pressing ESC.
+
+
+
+
+         ----------------end-of-author's-documentation---------------
+
+                         Software Library Information:
+
+                    This disk copy provided as a service of
+
+                           Public (software) Library
+
+         We are not the authors of this program, nor are we associated
+         with the author in any way other than as a distributor of the
+         program in accordance with the author's terms of distribution.
+
+         Please direct shareware payments and specific questions about
+         this program to the author of the program, whose name appears
+         elsewhere in  this documentation. If you have trouble getting
+         in touch with the author,  we will do whatever we can to help
+         you with your questions. All programs have been tested and do
+         run.  To report problems,  please use the form that is in the
+         file PROBLEM.DOC on many of our disks or in other written for-
+         mat with screen printouts, if possible.  PsL cannot debug pro-
+         programs over the telephone, though we can answer questions.
+
+         Disks in the PsL are updated  monthly,  so if you did not get
+         this disk directly from the PsL, you should be aware that the
+         files in this set may no longer be the current versions. Also,
+         if you got this disk from another vendor and are having prob-
+         lems,  be aware that  some files may have become corrupted or
+         lost by that vendor. Get a current, working disk from PsL.
+
+         For a copy of the latest monthly software library newsletter
+         and a list of the 2,000+ disks in the library, call or write
+
+                           Public (software) Library
+                               P.O.Box 35705 - F
+                            Houston, TX 77235-5705
+
+                                1-800-2424-PSL
+                             MC/Visa/AmEx/Discover
+
+                          Outside of U.S. or in Texas
+                          or for general information,
+                              Call 1-713-524-6394
+
+                          PsL also has an outstanding
+                          catalog for the Macintosh.
+
+

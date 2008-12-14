@@ -1,0 +1,26 @@
+
+Sample Better Basic Version 1.1 program notes
+
+1. The Opt-Tech Sort interface to Better Basic is 
+   XSORTBB.BIN.  It must be declared as CODE at the 
+   top of the program. You must also declare each 
+   of the five variables used with Opt-Tech Sort at 
+   the top of the program.
+
+2. All assembler subroutines must be contained in 
+   the same BIN file.  If your Better Basic program 
+   requires additional assembler routines, integrate 
+   your assembler routines' source into XSORTBB.ASM.  
+
+Linking Better Basic program with Opt-Tech Sort
+
+1. Better Basic programs do not get linked. 
+
+2. XSORTBB.BIN must be on the disk when loading your 
+   program.
+
+3. Load SORTRES prior to running Better Basic. 
+   SORTRES must be loaded with a specified workarea 
+   size as Better Basic does not allow Opt-Tech 
+   Sort to dynamically allocate memory.
+

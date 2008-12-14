@@ -1,0 +1,10 @@
+Sample Better Basic Version 2.0 program notes
+
+1. Better Basic 2.0 uses the IBM Interpreted BASIC 
+interface to SORTRES, described as FORMAT2 on page 
+178 in your Better Basic manual.  Refer to 
+Interpreted Basic interface (XIBMIBAS.BAS) examples.  
+
+2. SORTRES and SORTIBAS must be run before calling 
+SORTIBAS from your Better Basic 2.0 program. 
+

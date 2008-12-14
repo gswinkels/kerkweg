@@ -1,0 +1,21 @@
+Sample IBM Professional & RM Fortran Notes:
+
+1) The Opt-Tech Sort entry point used with IBM 
+Professional and RM Fortran is "SORTPF".
+
+2) RETCODE must be defined as a 2 byte integer.  
+NUMRECS can be a 4 byte integer if you include the 
+4Byte parameter on your control statement.
+
+Linking IBM Professional & RM Fortran 
+
+An example of linking the sample IBM Professional 
+Fortran and RM Fortran programs with Opt-Tech Sort 
+is shown below. 
+
+   A>LINK
+     Object Modules[.OBJ]:XIBMPFOR
+     Run File [XIBMPFOR.EXE]:   (enter is pressed)
+     List File [NUL.MAP]:       (enter is pressed)
+     Libraries [.LIB]:SORT
+

@@ -1,0 +1,199 @@
+Sample dBASE II Program Notes
+
+Overview
+
+You can use Opt-Tech Sort as a DOS command or call 
+it as a subroutine directly from dBASE II.  Both of 
+these methods are described below.
+ 
+You should be familiar with the General Information 
+(Chapter Two) and the Control Statement (Chapter 
+Five) before using Opt-Tech Sort to sort a dBASE II 
+file.
+
+In order to specify your control fields you must 
+know your record layout. You can use the dBASE II 
+command 'List Structure' to show the record layout 
+of a dBASE II data base record.
+
+A sample dBASE II data base (SAMPDBII.DBF) is 
+included on your Opt-Tech Sort distribution 
+diskette.  The following example lists the 
+structure of the sample data base file.
+
+DBASE
+***  dBASE II/86  Ver 2.3D  29 Nov 82
+USE SAMPDBII
+LIST STRUCTURE
+STRUCTURE FOR FILE:  SAMPDBII.DBF
+NUMBER OF RECORDS:   00050
+DATE OF LAST UPDATE: 12/15/83
+PRIMARY USE DATABASE
+FLD       NAME      TYPE WIDTH   DEC
+001     COMPANY      C    024          
+002     ACCOUNT      C    009          
+003     PHONE        C    013          
+004     CITY         C    014          
+005     STATE        C    003          
+006     ZIPCODE      C    005          
+** TOTAL **             00069
+
+The first character of a dBASE II record is a one 
+byte 'delete' indicator.  The 'delete' indicator is 
+not shown when you do a list structure, although 
+its length is counted in the total displayed.  You 
+must consider this 'delete' byte when specifying 
+your sort field starting positions.
+
+Field starting positions can be calculated by 
+adding two (2) to the combined length of the 
+preceding fields.  
+
+
+dBASE II Control Statement Considerations
+
+The control statement that is described in Chapter 
+Five allows you to specify the sort control fields 
+as well as other information to Opt-Tech Sort.
+  
+You should use the field type of 'C' (Character) 
+for all dBASE II fields except for signed numeric 
+fields which should have the field type of 'N' 
+(Numeric).
+
+You must use FILETYPE(DBII) on your control 
+statement to indicate that you are processing a 
+dBASE II data base.
+
+
+Using as a Subroutine from dBASE II
+
+Introduction
+
+To call Opt-Tech Sort directly from dBASE II you 
+must first make Opt-Tech Sort resident in your 
+computers memory.  This is accomplished by running 
+the SORTRES program from DOS. See Chapter Four.
+
+Opt-Tech Sort will remain in your computers memory 
+until your system is turned off, rebooted, or 
+removed from memory with the SORTRES /R parameter.
+
+Once Opt-Tech Sort is resident in your computers 
+memory you can use dBASE II as you normally do.  
+Opt-Tech Sort will be available for use directly 
+from dBASE II.
+ 
+
+Calling Opt-Tech Sort from dBASE II
+
+A simple command file named SORTDBII.PRG is 
+provided on your distribution diskette.  This 
+command file requires that you establish values for 
+three memory variables before you 'DO SORTDBII'.
+
+Input memory variables used:
+
+INFILE - (Input File) - is the name of the data 
+base you want to sort, you must specify the 
+complete file name including the '.DBF' extension.  
+You can only process one dBASE II file at a time.
+
+OUTFILE - (Output File) is the name of the file 
+where you want the sorted data to be placed.  This 
+can be the same name as your input file.  Caution, 
+if a system malfunction or power failure occurs 
+while sorting the input file to itself, there is 
+the potential for loss of data.  
+
+CTLSTMT - (Control Statement) - specifies the 
+area(s) within your dBASE II record you wish to 
+sort on.  The control statement format is described 
+in Chapter Five.
+
+After the sort completes the memory variables 
+RETCODE and NUMREC are returned to your program. 
+
+RETCODE - (Return Code) is a number indicating if 
+an error occurred while performing the sort.  A 
+zero value indicates successful completion.
+
+NUMREC - (Number of Records) is a number indicating  
+the number of records processed by the sort.
+
+Sample dBASE II Subroutine Sort
+
+If Opt-Tech Sort has not been loaded into your 
+computers memory then you must first run SORTRES 
+from DOS see Chapter Four on how to load SORTRES.
+The dBASE II command file shown below 
+(XDBII.PRG)  is contained on your distribution 
+diskette.  This command file can be used along with 
+the sort command file SORTDBII.PRG to sort the 
+sample data base SAMPDBII.DBF and produce a sorted 
+data base named SORTED.DBF.
+
+     STORE "SAMPDBII.DBF"   TO INFILE
+     STORE "SORTED.DBF"     TO OUTFILE
+     STORE "SORT(2,24,C,A) F(DBII)" TO CTLSTMT
+     DO SORTDBII                                       
+     ? "RETCODE =",RETCODE                                
+     ? "NUMREC  =",NUMREC
+     ? "SAMPDBII.DBF SORTED TO SORTED.DBF"
+
+Sample dBASE II Program Notes:
+
+1. If you have updated your dBASE II file, you will 
+need to use the 'USE' function to close the file so 
+all data is written to the disk before Opt-Tech 
+Sort is called.
+
+2. If you sort a data base to itself you may need 
+to perform the dBASE II 'USE' function to refresh 
+the dBASE buffers.
+
+3. If you do not want to use the command file 
+SORTDBII.PRG, make sure that the functions 
+contained within SORTDBII.PRG are performed by your 
+command file.
+
+4. The routine that is poked by SORTDBII.PRG will 
+be destroyed (and need to be poked again) if you 
+use the dBASE II sort command.
+
+
+Using Opt-Tech Sort with dBASE II
+
+Introduction
+
+Sorting a dBASE II file from DOS is the same as 
+using Opt-Tech Sort from DOS to sort any other 
+file.   Chapter Three describes using Opt-Tech Sort   
+from DOS.  
+ 
+    
+Sample dBASE II file Sort from DOS
+
+The following example shows how to sort the 
+SAMPDBII.DBF by Company name.
+
+A>SORT
+OPT-TECH SORT Version n.n
+Copyright Opt-Tech Data Processing 1983-1988
+
+Input filename(s):SAMPDBII.DBF
+Output filename:SORTED.DBF
+Control filename [Keyboard:]: (press "Enter") 
+Enter Control Statement:
+SORT(2,24,C,A) FILETYPE(DBII)
+
+Notes:
+
+1. The above sort control statement specifies a 
+sort field starting position of 2 because position 
+1 is occupied by a 'delete' byte.   
+
+2. You must specify Filetype(DBII) on your control 
+statement.
+
+

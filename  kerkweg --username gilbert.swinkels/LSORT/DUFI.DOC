@@ -1,0 +1,25 @@
+DUFI 1.0 Copyright London Computing 1989,  All rights Reserved.
+
+Usage is:  DUFI [-Fnn] [-Wtr,tc,#r,#c] [-Cn,b,r] filename
+where: filename is name of file to display
+       -Fnn           Records are fixed length, nn bytes. 1 <= nn <= 4096
+       -Wtr,tc,#r,#c  Display in Window.  Upper left corner is tr,tc (from 0)
+                      Window is #r rows high, #c columns wide. #r >= 8, #c >= 32
+
+       -Cn,b,r        Window Color is: n -- normal, b -- high intensity,
+                      r -- reverse video.  Use color numbers 0-255.
+
+Arrow keys     scroll file left, right, up and down
+PgUp and PgDn  scroll file up, down 1 Screen
+TAB, SHIFT-TAB scroll file right, left 10 columns
+
+Any of the above keys may be preceded by a repeat count, eg 5PgDn causes
+PgDn key to be pressed 5 times.
+
+^Home, ^End    scroll to top, bottom of file
+Home, End      scroll to left or right end of line
+F1             displays help
+F3             toggles HEX display
+F5             marks fields for LSORT, Field info written to dufi$$$$.$$$
+ESC            Quits
+

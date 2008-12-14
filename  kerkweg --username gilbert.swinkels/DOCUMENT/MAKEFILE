@@ -1,0 +1,21 @@
+# Makefile for Microsoft C 6.0
+
+OBJ1=cp.obj 
+OBJ2=cpinput.obj
+OBJ3=cpfuncts.obj
+OBJ4=cpbuild.obj
+
+CFLAGS=-AL -c
+
+cp.exe:	$(OBJ4) $(OBJ3) $(OBJ2) $(OBJ1)
+                cl -o cp cp.obj cpinput.obj cpfuncts.obj cpbuild.obj
+
+$(OBJ1):	cpheader.h
+$(OBJ2):	cpheader.h
+$(OBJ3):        cpheader.h
+$(OBJ4):        cpheader.h
+
+
+#          link cp+ cpinput+ cpbuild+ cpfuncts/packcode/st:16000,,cp;
+
+

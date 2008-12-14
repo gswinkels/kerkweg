@@ -1,0 +1,14 @@
+lsort.obj +
+lsortcmp.obj +
+lsortdbf.obj +
+lsortio.obj +
+lsortprm.obj +
+lsortqk.obj +
+lsortsub.obj +
+lssort.obj +
+lsuser.obj +
+lsmerge.obj +
+
+LSORT.exe
+
+/NOD:CLIBCE CLIBCEP;

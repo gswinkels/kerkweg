@@ -1,0 +1,141 @@
+LSORT
+(C) Copyright London Computing, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990
+LSRT (C)Copyright London Computing, 1983,1984,1985,1986, 1987, 1988, 1989
+
+LSORT consists of two sort utilities, LSRT and LSORT as well as
+object code for LSORT (which you can use to create a customized version).
+LSORT now runs under both DOS (3.3 and above) and OS2.
+
+LSRT is a replacement for the DOS SORT command.  It runs on IBM PCs and
+compatibles with at least 256KB and either two floppy disks or a fixed
+disk.  It will sort MSDOS ASCII files on 1 to 16 sort fields.  The file
+to be sorted must contain variable length records ending with cr/lf.
+It is written using large model and will sort files of up 16000 records
+that will fit into memory.
+
+LSORT is a full function sort program that will sort and merge on 32 fields.
+Each field may be a character string, a binary number or a floating point
+numbers.  LSORT sorts or merges files that are larger than memory, dBase II
+and dBase III files.  LSORT allows user exits for customized applications.
+
+You may make copies of this software and distribute to other users as long as
+there is no charge or other consideration and this notice is not removed or
+bypassed.
+
+LSORT and LSRT are user supported software.  If either program proves
+useful, please make a contribution ($10 for LSRT or $25 for LSORT and LSRT)
+to:
+
+London Computing
+PO Box 696
+Cherry Hill, NJ  08003
+
+Anyone contributing at least $25 will receive a diskette containing the
+source (in C) for both LSORT and LSRT.  Source is available for
+Microsoft C 6.0 only.  LSORT now uses OS2 Family API Calls.  You will
+need Microsoft C 6.0 or the Microsoft or IBM OS2 SDK to compile and
+link LSORT.  The source to release 3.12 with bug fixes will be
+available on Request.  3.12 is a DOS only release using proprietary
+screen libraries, which are included.
+
+Please report any problems or bugs to me at Compusrv account 72437,730 or
+by mail to the above address.
+
+Thanks, Norm London
+
+
+What's New:
+
+Version 3.21
+
+Fixes a merge bug that sometime writes the output file to an incorrect drive.  
+It was most likely to occur if output is sent to a RAM disk or network drive.
+
+SORTPARM.DAT and DB3PARM.DAT, two files used by the restart facility, are now
+deleted upon successful completion of LSORT.
+
+Version 3.20
+
+Fixes a merge bug introduced in version 3.12 that limits the size of a file
+to sort.
+
+LSORT has been migrated to run under DOS and OS2 as a Family Mode Application.
+The menu program is LSMENU under DOS and LSMENU2 under OS2.
+
+The maximum number of intermediate files created by a sort has increased from
+5 to 9.  This will minimize the number of passes for large files, but requires
+that FILES=32 be specified in CONFIG.SYS.
+
+The maximum number of strings that can be merged increased from 256 to 1024.
+This increases the maximum number of records that can be sorted to 16,000,000
+from 2,000,000.  A string is created when all the data that fits in memory
+is sorted.  This could be as few as 12 4K records to as many as 16,000.  The
+size of a string depends on the amount of memory available and the record
+length.
+
+The maximum size of a filename has increased to 256 characters to allow for
+use of HPFS under OS2.
+
+
+Version 3.12
+
+Version 3.12 fixes a merge bug in Version 3.11
+
+Version 3.11
+
+Version 3.11 has been rewritten to eliminate use of my private function
+library.  Some special functions have been incorporated into the source
+of Version 3.11.  Two special object files are needed: scrsubs.obj and
+dvint.obj.  These provide full screen manipulation and an interface to
+Desqview.  Source is not available.  The LSMENU program is no longer in
+Beta.  Source for LSMENU is still NOT available.
+
+A new version of LSRT, LSRTOS2, has been included.  LSRT has been relinked as
+a family mode DOS/OS2 program and should run under either.
+
+Version 3.10  (Beta)
+
+This version of LSORT (3.10) fixes several problems with sorting type N
+(numeric data in ASCII form).  It also enhances type N to accept scientific
+notation of the form x.xxxExxx.
+
+LSORT 3.10 contains a friendly front end to LSORT, LSMENU 1.00.  LSMENU is
+an SAA like front end to LSORT that runs in character mode.  It allows you
+to easily invoke the sort.  The source for LSMENU is not available because
+I have used 3rd party screen manipulation subroutines.
+
+LSMENU does not currently support delimited fields.  This facility will
+be added soon.
+
+LSMENU does allow you to select dBase fields to sort by name and allows you
+to mark sort fields in type F and type V files.
+
+LSORT still exists for anyone who wants to continue using command mode.
+
+LSORT is now available in Microsoft C format only.
+
+
+Version 3.02
+
+This version of LSORT (3.02) contains bug fixes, LSORT for Microsoft C 5.1 and
+a new version of the LSRT sort filter.  It also contains a new mechanism for
+selecting files and a utility program, SELEFILE.EXE which can be called from
+your own applications.
+
+LSRT now will sort up to 16,000 records or the maximum file size that will fit
+in memory, up from 6000 records and 48,000 bytes.  It must be compiled using
+Microsoft C Rel 5.0 or above and it must use the large case libraries.
+
+
+Extracting LSORT
+
+This disk contains one EXE file which is a self extract LHARC file.
+Run the EXE to extract all executables, object for LSORT, LSORT.MAK a
+Microsoft NMAKE version make file (for use with QuickCs make facility),
+LSORT.CRF a link redirection file for relinking LSORT, LSORT.HLP HELP
+for LSORT and descriptive text.
+
+Registered users will also extract all the source for LSORT and LSMENU
+with the exception of the CSUBS and CDRIVER source which can not be
+distributed.
+

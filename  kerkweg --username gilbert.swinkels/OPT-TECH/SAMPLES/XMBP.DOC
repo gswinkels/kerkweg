@@ -1,0 +1,17 @@
+mbp Cobol Program Notes:
+
+Linking Opt-Tech Sort with mbp Cobol
+
+The SORT.LIB is required when linking your mbp
+Cobol programs (otherwise you will get an
+unresolved external reference SORTMBP).  If you 
+use the LINK85.BAT or LINK85X.BAT you will have 
+to add SORT.LIB to the LINK command where the 
+other libraries are specified.
+
+mbp indexed files are supported by the 
+FILETYPE(MI2) parameter.  Sequential files are 
+supported by FILETYPE(MS) for standard sequential
+files and FILETYPE(TXT) for line sequential files.
+
+
