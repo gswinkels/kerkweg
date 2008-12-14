@@ -1,0 +1,22 @@
+True BASIC Program Notes
+
+1) You must include a Library statement for the 
+True Basic interface "SORTTB.TRC" and the interface 
+must be available on disk.
+   
+2) The variables NUMREC and RETCODE must be              
+integers.
+
+
+Linking Opt-Tech Sort with True Basic
+
+1) Opt-Tech Sort does not require linking with True 
+BASIC.  However, SORTRES must be loaded prior to 
+running your True BASIC program.
+ 
+2) True BASIC does not allow Opt-Tech Sort to 
+dynamically allocate workarea.  A workarea size 
+must be specified when loading SORTRES before 
+executing your True BASIC program.  See loading    
+SORTRES in chapter 4.                     
+

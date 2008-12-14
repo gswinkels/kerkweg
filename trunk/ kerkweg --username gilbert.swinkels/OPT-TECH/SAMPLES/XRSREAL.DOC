@@ -1,0 +1,20 @@
+Sample Realia Cobol Record Passing Program Notes.
+
+1. The Opt-Tech Sort modules needed to LINK the 
+sample program are contained in SORT.LIB.
+
+2. As shown in the sample program the RAAT entry 
+point name is RSREAL.
+
+
+Linking Realia Cobol with Opt-Tech Sort
+
+When linking, the Realia library file (REALCOB.LIB) 
+must be specified last.
+     
+A>LINK
+  Object Module [.OBJ]: XRSREAL
+  Run File [XRSREAL.EXE]:       (press enter)
+  List File [NUL.MAP]:          (press enter)
+  Libraries [.LIB]:SORT REALCOB
+

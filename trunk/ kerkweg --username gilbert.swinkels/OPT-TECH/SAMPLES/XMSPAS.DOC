@@ -1,0 +1,21 @@
+Sample IBM Pascal Program Notes:
+ 
+1) The Opt-Tech Sort entry point used with IBM 
+and Microsoft Pascal is "SORTIBMP".
+
+
+Linking IBM & MS Pascal Programs with Opt-Tech Sort
+
+An example of linking the IBM Pascal sample program 
+with Opt-Tech Sort is shown below.  
+
+A>LINK
+Object Module [.OBJ]: XMSPAS [+ SWnnK]                   
+Run File [XMSPAS.EXE]:     (press enter)
+List File [NUL.MAP]:       (press enter)
+Libraries [.LIB]:SORT
+
+A sortwork area (SWnnK) may not be required when 
+linking.  Please see 'Linking Opt-Tech Sort' and 
+'Memory Considerations' in Chapter Four.
+

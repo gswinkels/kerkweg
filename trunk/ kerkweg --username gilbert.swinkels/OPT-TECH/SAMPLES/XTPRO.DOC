@@ -1,0 +1,18 @@
+Sample Turbo Prolog program notes.
+
+To run the sample program (or you own program) 
+compile the Prolog program to an .OBJ module.  Then 
+do a LINK as shown below.
+   
+C:>LINK 
+Object Modules[.OBJ]:INIT SORTTP XTPRO [SWnnK] XTPRO.SYM
+Run File [INIT.EXE]: XTPRO
+List File [NUL.MAP]:       (press enter)
+Libraries [.LIB]:SORT PROLOG
+
+The sortwork area SWnnK.OBJ shown on the Object 
+Module line above is not required if you use the 
+/CP: link parameter as described in 'Linking Opt-
+Tech Sort' and 'Memory Considerations' in chapter 
+4 of your Opt-Tech Sort manual. 
+

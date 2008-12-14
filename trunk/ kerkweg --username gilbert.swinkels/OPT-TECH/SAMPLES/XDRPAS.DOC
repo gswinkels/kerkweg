@@ -1,0 +1,17 @@
+Sample D/R Pascal/MT+ Program Notes:
+
+1) The entry point used with Pascal/MT+ is SORTMT.
+
+
+Linking D/R Pascal/MT+ with Opt-Tech Sort
+
+1) You must use LINKMT to link your program with    
+the Opt-Tech Sort interface module SORTMT.R86.  
+
+   A>LINKMT  XDRPAS, SORTMT, PASLIB/S
+
+2) D/R Pascal/MT+ does not allow Opt-Tech Sort to 
+dynamically allocate memory.  Therefore you must 
+load SORTRES with a workarea size.  See Chapter 
+Four (Loading SORTRES). 
+

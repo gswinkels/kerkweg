@@ -1,0 +1,32 @@
+Sample IBM Compiled BASIC Program Notes.
+  
+1) The NUMRECS% and RETCODE% must be integer 
+variables.
+
+Linking Compiled BASIC with Opt-Tech Sort.
+
+A>LINK  
+Object Modules[.OBJ]:XIBMCBAS [+ SWnnK]
+Run File [XIBMCBAS.EXE]:      (press enter)
+List File [NUL.MAP]:          (press enter)
+Libraries [.LIB]:SORT.LIB
+
+A sortwork area (SWnnK) may not be required when 
+linking.  Please see 'Linking Opt-Tech Sort' and 
+'Memory Considerations' in Chapter Four.
+
+IBM Compiled BASIC Interface to SORTRES
+
+An alternative interface is provided for Compiled 
+Basic programs which allows calling the resident 
+SORTRES.  This alternative interface is called 
+SORTIBMR.  All source code is the same as the 
+SORTIBMB interface shown above except the name of 
+the interface module CALLed is SORTIBMR. 
+
+Users of the SORTIBMR interface should read 
+"Loading the Resident Sort - SORTRES" in Chapter 
+Four SORTRES must be loaded before running any 
+compiled BASIC program calling the SORTIBMR 
+interface.
+

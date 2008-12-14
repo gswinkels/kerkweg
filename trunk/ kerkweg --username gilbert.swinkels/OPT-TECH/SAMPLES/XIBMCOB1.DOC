@@ -1,0 +1,56 @@
+Sample IBM Cobol Ver 1.x Program Notes:
+  
+1. The Opt-Tech Sort entry point used with IBM 
+Cobol is "SORTIC".  
+
+2. The input filename, output filename and control 
+statement parameters must be followed by a "/" 
+(slash).  
+
+3. The NUM-RECS and RET-CODE should be defined as 
+COMP-0 (binary).
+
+Linking IBM Cobol with Opt-Tech Sort
+
+Below is a sample link of Opt-Tech Sort and the 
+sample program with your input underlined.
+
+A>LINK XIBMCOB1 [+ SWnnK]
+Run File [XIBMCOB1.EXE]:      (press enter)
+List File [NUL.MAP]:          (press enter)
+Libraries [.LIB]:SORT
+
+A sortwork area (SWnnK) may not be required when 
+linking.  Please see 'Linking Opt-Tech Sort' and 
+'Memory Considerations' in Chapter Four.
+
+
+IBM Cobol Filetypes
+
+IBM Cobol supports a number of unique filetypes 
+as explained below.  
+
+Cobol Indexed files require a Filetype(CI) 
+parameter to be coded on the sort control 
+statement. A complete discussion is given in the 
+description of the CI filetype in Chapter Five.
+
+Cobol Sequential files require a Filetype(CS)  
+parameter to be coded on the sort control 
+statement. A complete discussion is given in the 
+description of the CS filetype in Chapter Five.
+
+Cobol Relative files require a Filetype(CR) 
+parameter to be coded on the sort control 
+statement. A complete discussion is given in the 
+description of the CS filetype in Chapter Five.
+  
+A Cobol Relative output file instead of the default 
+output filetype (same type as the input file) can 
+be obtained by using the OUTFile(CR) parameter.  
+This facility allows you to request ADDRess OUTput 
+files or KEY OUTput files to be written out as 
+random files for use with binary searches, etc.  A    
+complete description is given in the Outfile 
+parameter description in Chapter Five.
+

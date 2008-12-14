@@ -1,0 +1,16 @@
+Sample Power Basic program notes (file sort)
+
+Power Basic interfaces through SORTPBI.OBJ with 
+the memory resident version of Opt-Tech Sort 
+(SORTRES).  You must load SORTRES with a work 
+area (/W parameter) before running a Power Basic 
+program that calls Opt-Tech Sort.  See Chapter 
+Four for information on loading SORTRES.
+
+The NUMRECS% can be a long integer NUMRECS& if you
+use the 4BYTE parameter on your control statement.
+
+The interface file SORTPBI.OBJ must be available 
+when you compile your Power Basic program.
+
+

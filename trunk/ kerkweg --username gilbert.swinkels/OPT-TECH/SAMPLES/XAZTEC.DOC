@@ -1,0 +1,18 @@
+Sample Aztec C program notes.
+
+Interface modules SORTAC.O, SORTACLC.O, SORTACLD.O 
+and SORTACL.O are provided on your Opt-Tech Sort 
+master diskette.  These files provide an interface 
+for the different memory models of Aztec C.  
+
+You must link the appropriate interface module and  
+call the appropriate entry point, SORTAC, SORTACLC, 
+SORTACLD, or SORTACL depending upon the memory 
+module you are using.  
+
+Aztec C interfaces with the memory resident version 
+of Opt-Tech Sort (SORTRES.EXE).  SORTRES can be 
+loaded with or without the workarea parameter (/W).  
+See Chapter 4 for information on how to load 
+SORTRES.
+

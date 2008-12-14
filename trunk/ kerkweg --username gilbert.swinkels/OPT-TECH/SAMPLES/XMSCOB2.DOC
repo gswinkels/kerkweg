@@ -1,0 +1,15 @@
+Sample Microsoft Cobol Ver 2.x program notes.
+
+In order to call Opt-Tech Sort directly from MS 
+Cobol Ver 2.x you must link Opt-Tech Sort into your 
+RUNCOB.EXE file.  A summary of how to accomplish 
+this is given below.  
+
+1. Edit USERPROG.MAC and add the line SORTIC,ASM86
+2. Assemble the program ASM.ASM
+3. LINK COBOL ASM,RUNCOB,,COBOL1 COBOL2 SORT /NOD
+4. INSTALL RUNCOB.EXE
+
+More information is provided in your Cobol manual 
+under "Calling Non-Cobol Subroutines".
+

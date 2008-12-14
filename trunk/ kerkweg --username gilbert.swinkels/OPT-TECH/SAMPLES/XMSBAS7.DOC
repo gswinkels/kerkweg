@@ -1,0 +1,68 @@
+Sample Microsoft BASIC 7 notes for DOS.
+
+Opt-Tech Sort can be used with BASIC 7 either 
+from within the QBX environment or when using BC, 
+the command line version of the compiler.  The 
+method of LINKing with Opt-Tech Sort is different 
+depending upon the version you are using.
+
+When using BC, the output from compiling is a .OBJ 
+file.  This .OBJ file can be then LINKed with Opt-
+Tech Sort as shown below.
+
+C:>LINK
+Object Modules [.OBJ]: XMSBAS7
+Run File [XMSBAS7.EXE]:  (press enter)
+List File [NUL.MAP]:     (press enter)
+Libraries [.LIB]: SORT   
+
+If you want to use Opt-Tech Sort from within the 
+Quick BASIC environment, you will need to include 
+some of Opt-Tech Sort's modules into a Quick 
+Library (.QLB) and a stand-alone library (.LIB).  
+These libraries can be created as shown below.
+
+C:>LINK /Q SORTMSB7 SW0K SORT
+Run File [SORTMSB7.QLB]: (press enter)
+List File [NUL.MAP]:     (press enter)
+Libraries [.LIB]: QBXQLB
+
+The above example builds a Quick Library named 
+SORTMSB7.QLB which contains SORTMSB7.OBJ, SW0K.OBJ
+and SORT.OBJ.  These object modules are contained
+on the Opt-Tech Sort master diskette.  You also 
+need to build a parallel stand-alone library as 
+shown below.
+
+C:>LIB
+Library name: SORTMSB7
+Library does not exist.  Create? (y/n) y
+Operations: +SORTMSB7 +SW0K +SORT
+List file:    (press enter)
+
+After building the .QLB and the .LIB Opt-Tech Sort 
+can be used within the QBX environment by using 
+the /L option specifying the SORTMSB7.QLB.
+
+
+If you want to build an extended run-time module 
+as described in your BASIC 7.0 manual, the 
+following export list can be used.
+      
+      #OBJECTS
+      SORT
+      SW0K
+      SORTMSB7
+      #EXPORTS
+      SORTMSB7
+
+
+The NUMREC variable returned from Opt-Tech Sort can 
+be a "LONG INTEGER" if you specify the 4Byte 
+parameter on your control statement.
+
+You may want to review the SETMEM function in your 
+BASIC manual.  The 100,000 bytes freed in the above 
+sample is just used as an example.  More or less 
+memory can be freed for use by Opt-Tech Sort.
+

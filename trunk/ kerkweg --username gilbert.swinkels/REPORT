@@ -1,0 +1,26 @@
+Evaluation of SORT programs
+
+Norton CPU index  :  23
+
+1.  Input file : CRFL delimited, 3000 recs, 253Kbyte
+ 
+Qsort  65'
+Gsort  19'
+Lsort   7'
+OTsort 10' (no EMS)
+OTsort  8' (with EMS) 
+
+2.  Same input file, FBSS 2 loaded
+
+Qsort  no memory
+Gsort  19'
+Lsort  17' (merge of 2 files)
+OTsort  9' (no EMS)
+OTsort 14' (with EMS)
+
+3.  FBSS loaded, Input file :  9000 records, 760 Kbyte
+
+Gsort  no memory
+Lsort  39'
+OTsort 30' (no EMS)
+OTsort 37' (with EMS)

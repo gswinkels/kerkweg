@@ -1,0 +1,631 @@
+READ.ME - Opt-Tech Sort Version 4.0 diskette #1.
+
+This file notes any changes or additions that were to recent to incorporate 
+into the printed manual.
+
+
+
+       Sum Parameter
+           
+       The Sum parameter is used to delete records with equal 
+       keys and summarize (arithmetically add together) the 
+       numeric data in the fields that you indicate.  The Sum 
+       parameter uses the fields indicated in the sort parameter to 
+       determine when a record should be output.  A record is 
+       output when any of the fields in the Sort parameter 
+       changes.
+       
+       The format of the Sum Parameter is:
+       
+            SUM[(control field[,control field,...])]
+       
+       A maximum of 20 control fields can be specified. Control 
+       fields are optional.  If none are specified (ie. SUM or 
+       SUM()) then no summing is performed and one record per 
+       key value as defined in the sort parameter is output.  
+       
+       Control fields contain three elements:  
+       
+              ( Start,  Length,  Type )
+          
+       Start  - Is the numeric field's starting position in the 
+       record, specified either by the field's position in the 
+       record.  Start is a number that indicates the starting byte 
+       position of the control field relative to the beginning of the 
+       record.  The first position in the record is 1. 
+       Note:  Delimited fields (eg. comma delimited) are not 
+       supported in the Sum parameter.
+       
+       Length  - Is a number that specifies the number of bytes 
+       occupied in the record by the control field.  
+       
+       Type  - Specifies the format of the data contained in the 
+       control field.  Valid entries for Type are:  Uppercase 
+       letters show the minimum abbreviation for the type field.  
+       Upper of lowercase letters can be used in the control 
+       statement parameters.
+       
+       N  =  ASCII Numeric fields with or without leading minus
+             or plus signs and with or without decimal points.
+             The numbers do not have to be decimal point aligned.
+             The sums are placed back into the field right justified
+             any insignificant decimals are eliminated.
+             If the result is too large to be stored in the field 
+             then the field is filled with asterisks.  You can 
+             eliminate field overflow by allowing extra space in
+             the original fields or inserting some space by using
+             using the Outrec parameter to insert blanks before 
+             the field.  This can not be done in the same run as
+             the sum operation.  If you are going to add space before
+             your numeric fields, this can be done in a "reformatting"
+             pass of your data and then use the Sum parameter on the
+             resultant file.
+
+
+       JN  = ASCII Numeric fields with or without leading minus
+             or plus signs and with or without decimal points.
+             do not have to be decimal point aligned. The sums 
+             are placed back into the field right justified and the
+             number of decimal places output is equal to the number
+             that are in the input data.  See "N" type field for 
+             field overflow information.
+       
+       Notes:
+       1) The Sum parameter requires that you use the Sort 
+       parameter so that it knows what control breaks to summa-
+       rize on.
+       
+       2) You can not Sum on your Sort control fields.
+       
+       
+       Comparison with Dupout parameter
+       The sum parameter is similar to the Dupout parameter.  
+       The Sum parameter adds the ability to summarize numeric 
+       data and it uses the Sort control fields to determine when 
+       to output a record.  
+       
+       The Dupout parameter does no summing and uses its own 
+       control fields to determine when to output a record.  The 
+       SUM parameter with no fields specified is the same as 
+       using the Dupout with your sort fields as Dupout fields.  
+       
+       The Dupinclude and Dupexclude parameter use different 
+       logic to determine when to output a record.
+       
+       The Sum and Dupout, Dupin, or Dupexclude can not be 
+       used in the same control statement.
+
+       Example:
+            SORT(1,1,C,A) SUM(63,6,N) 
+       
+       The above control statement Sorts the data in position 1 
+       for a length of 1 on Character data and Sums the field in 
+       position 63 for a length of 6 on ASCII Numeric data.  
+       A summarized record will be output when the data in the 
+       sort field changes.  This example can be run on the SAMP.DAT
+       file included on you master diskette.
+       
+       Abbreviation:SUM
+
+
+
+New TERMinate feature available.
+   The new TERM feature allows you to terminate the sort during processing.
+   The key that will terminate Opt-Tech Sort can be specified.  An optional
+   confirmation message "Terminate Sort(y/n):" can also be displayed at 
+   a row column cursor position.  The format of the TERM parameter is:
+
+   TERM(ASCIIKEY, MSGYN, ROW, COL)
+
+   ASCIIKEY=the ASCII key value that will cause Opt-Tech Sort to terminate.
+            If you wish to use an extended key specify this value as two 
+            values the first being 0 followed by the ASCII value of the
+            extended key.
+
+   MSGYN   =A "Y" or "N" that indicates if you want a confirmation message
+            to be displayed.  The confirmation message displays 
+            "Terminate Sort?(y/n):" and a Y or N is expected.
+
+   ROW     =The screen row for the above confirmation message. 0=FIRST ROW
+   COL     =The screen column for the above confirmation message.
+
+   Notes   1. Not all subparameters need to be specified.  The default KEY is
+           27 (Escape).  The default MSGYN is "N" and the ROW, COL, default
+           to the cursor location at the start of Opt-Tech Sort.
+  
+           2. DOS Control Break checking is disabled (so it can not interrupt
+           Opt-Tech Sort) when the TERM parameter is used.
+
+           3. When Opt-Tech Sort is terminated by pressing the key specified
+           it will return a return code of 299 to the screen or application.
+
+   Examples:
+           SORT(1,10,C,A) TERM(27,Y)
+           this example says to terminate Opt-Tech Sort if an Escape (27)
+           is pressed and to display a confirmation message.
+
+
+New integer Sort data types and lengths supported.
+   I  - Intel* format signed Integer, any length supported.
+   W  - Intel* format unsigned integer any length supported.
+   FI - Non-Intel* format signed integer, any length supported.
+   BI - Non-Intel* format unsigned integer, any length supported.
+
+   Note:  The I and W type fields are common on the PC.  Opt-Tech Sort 
+          has had support for these for many years, but now all lengths 
+          are supported.  The FI is a new field type with version 4.0r. 
+          It replaces the old BI type.  BI is now unsigned.
+
+   *Intel format of storing integers is the most common on the PC.  The
+    data is stored least significant byte first.  The Non-Intel format
+    stores the data with the most significant byte first.
+
+
+COLUMN BINARY data type now supported.
+   Note:  This data type is not found that often and this section can be
+          skipped by most Opt-Tech Sort users.
+   A method of storing punched card data on the PC (Column Binary) is now 
+   a supported Sort field, type CB.  The CB type uses a lookup table to
+   determine the collating sequence for column binary data. The position 
+   that the column binary data is located in the table is used as its 
+   collating value.  A sample collating table is contained on your master 
+   diskette in the file COLBIN.ALT.  This table has the EBCDIC lowercase 
+   letters, upper case letters and number in it.  Data sorts blank first,
+   then a-z followed by A-Z followed by 0-9. You can modify this table if 
+   you want to add items or change the sequence of Column Binary data. 
+   This table comes into the Opt-Tech Sort ALTSEQ table and it uses the 
+   same physical format as the table described in the ALTSEQ parameter in 
+   your Opt-Tech Sort manual. To use the CB type specify the START position
+   as the byte position in the record.  The LENGTH as the number of 
+   Column binary items and the type as CB.  
+   Example:  To sort a item number stored a Column binary that starts in 
+   card column 75 for a length of 5 columns the following sort control 
+   statement could be used.
+   SORT(149,5,CB,A) ALTSEQ(COLBIN.ALT)
+
+   Note:  Since Column Binary data takes two bytes per column a start 
+          column of 75 translates to byte position 149 (75 x 2 - 1).
+
+
+DATE field type now supported.
+   You can now use the field type of DATE in your SORT control statement.  
+   Dates are supported in the following formats:
+      MM/DD/YY, MM-DD-YY,  MM/DD/YYYY, MM-DD-YYYY
+
+   If the year (YY) is less than 4 digits it is assumed to be 19YY
+   months and days do not need to be 2 digits.  Valid examples:
+   8/14/56, 08/14/1956, 8/1/1856, 1/1/1.
+
+   To use a Date type field in your control statement the following
+   statements could be used:
+      SORT(1,10,DATE,A) 
+       or 
+      SORT(1,8,DATE,A) 
+   the length you specify (8 or 10) in the above examples must accurately
+   reflect the length of the field where the dates are stored.  Any 
+   leading blanks are skipped.
+
+
+TIME field type now supported.
+   You can now use the field type of TIME in your SORT control statement.  
+   Time is supported in the following formats:
+      HH:MM, HH:MMam, HH:MMAM, HH:MMpm, HH:MMPM
+
+   The hour (HH) does not always need to be 2 digits.  The minute (MM)
+   must always be 2 digits.  AM or PM (upper or lower case) can be specified
+   immediately after the minutes.  Valid examples:  
+   10:00pm,  12:00AM (midnight), 10:05AM, 9:15 (assumed to be am), 21:15.
+
+   To use a TIME type field in your control statement the following
+   statements could be used:
+      SORT(1,7,TIME,A) 
+       or 
+      SORT(1,5,TIME,A) 
+   the length you specify (5 or 7) in the above examples must accurately
+   reflect the length of the field where the times are stored.  Any 
+   leading blanks are skipped.
+
+
+ASCIIZ String support improved
+    The length of "Z" can be used in the SORT, INCLUDE, and DUP... 
+    parameters.  This length indicator says to dynamically calculate the
+    length up to the binary zero.  This is useful when working with null
+    terminated strings (ASCIIZ) such as those produced by the "C" language.
+    Upper or lower case "Z" can be used.  Example of sorting on a ASCIIZ 
+    string that starts in column 50.  SORT(50,Z,C,A)
+
+
+Optional Subparameter "ALP" on DUPOUT, DUPEXCLUDE, DUPINCLUDE statements.
+    The first field in a DUP... parameter can be ALP.  This parameter 
+    indicates that uppercase and lowercase ALPhabetic characters should
+    be treated equivalently.  The field you are checking for duplicates
+    should be sorted with the ALP type in the SORT control statement.
+    
+    Example:  SORT(1,10,ALP,A) DUPOUT(ALP,1,10)
+    The above example SORTs the data in columns 1 for length 10 and 
+    eliminates duplicates (without regard to upper or lower case) in 
+    columns 1 for a length of 10.  
+
+    Note:  If the optional Buffersize subparameter is used it must come
+    after the ALP subparameter.
+
+
+Delimited Fields now allowed in Outrec parameter.
+   Fields with delimiters between them (e.g. comma delimited) can now be 
+   used in the Outrec parameter.  Prior to this the Outrec parameter could
+   only accept fixed position fields.  The same format is used to specify a
+   delimited field in Outrec as is used in the Sort and Include/Omit 
+   parameters.  Namely use a pound sign (#) and the relative field number.
+
+   Example, to reverse the order of two fields in a comma delimited record 
+   use OUTREC(#2,#1).  Please note this example will not put a comma between
+   the two fields and will not put a Carriage Return Line Feed sequence 
+   on the end of the record.  To accomplish that use this parameter,  
+   OUTREC(#2,",",#1,CRLF).   This parameter builds an output record 
+   consisting of field #2, followed by a comma followed by field #1 followed
+   by Carriage Return Line Feed.
+
+
+New filetype Mainframe Variable (MV) added.
+   FILETYPE(MV) has been added.  It supports variable length records like
+   those on a Mainframe system.  The record length is contained in the 
+   first two bytes of the record stored in a High-Low format.  The next
+   two bytes are control information and are ignored by Opt-Tech Sort.
+   The length bytes contain the length of the actual data and do not 
+   include the 4 bytes for the record length and control bytes.  The first
+   byte of data in the record starts at position 4.  For example, to sort
+   on the first 20 data bytes of a MV type file the following control 
+   statement could be used.  SORT(4,20,C,A) FILETYPE(MV)
+
+
+Using INCLUDE or OMIT with DUPOUT, DUPIN or DUPEXCLUDE.
+   If a record selection parameter (Include or Omit) is used with a 
+   duplicate elimination parameter (DUPOUT, DUPIN, DUPEXCLUDE) the record
+   selection takes place before the records are checked for duplicates.  
+   It does not matter which parameter is used first on the control statement.
+
+
+Bit level record selection now available.
+   Note: This feature is somewhat advanced, if you don't understand this
+   feature don't worry about it. 
+
+   The Include and Omit parameters can now select on individual bits 
+   within single byte fields.  The literal in the include/omit parameter 
+   is logically "ANDed" with the specified byte.  If the result is zero 
+   then the EQ conditional will be true.  If the result is other than 
+   zero then the NE condition will be true.   
+   
+   For example if you wanted to include all records where in byte 50 you 
+   wanted records that had the second (from the right) bit set on, the 
+   following control statement could be used.
+   INC(50,1,BIT,NE,&H02)
+
+   The above literal (&H02) has only the second bit on.  When this is ANDed
+   with a byte that has the second bit on the result will be non zero and
+   the NE condition will be true.  
+
+   Bits can be tested for '0' by a similar process.  If you wanted to check
+   if the above bit was 0 the following control statement could be used.
+   INC(50,1,bit,EQ,&H02)
+
+   The EQ condition can be thought of as Zero and the NE as Not Zero.
+
+
+Continuation of Input Filename prompt.
+   Note:  This is a very seldom used facility and can be bypassed by 
+   most people.
+
+   When using the standalone version of Opt-Tech Sort (OTSORT.EXE), the
+   first prompt you receive is Input Filename(s):.  Normally a single
+   filename is entered here.  As documented in the Opt-Tech Sort manual
+   multiple filenames can be specified if a plus sign ("+") is placed
+   between the filenames.  This is normally sufficient except in the case
+   where you have so many input filenames that they can not be typed on 
+   one line.  We have added the ability to continue entering input filenames
+   on the next line (and any number of subsequent lines) if you end your
+   line with a hyphen ("-").  This also allows you to make a file of 
+   responses containing many input filenames ending in "-" and use the
+   I/O redirection facility of DOS to answer the prompts from OTSORT. 
+   Example:  C:>OTSORT <yourresp      where yourresp is a ASCII text file
+   containing your responses to the OTSORT prompts.
+
+
+Turbo Pascal can now pass workarea address and size.
+   Under some conditions it may be desirable to pass the address and 
+   size of an area for Opt-Tech Sort to work in.  Sample programs 
+   XTPAS4W.PAS and XRSTP5W.PAS show how this can be done.
+
+
+Power Basic interfaces and samples provided on disk#2.
+   XPB.BAS - Power BASIC sample - file sort
+   XPB.DOC - Power BASIC info - file sort
+   XRSPB.BAS - Power BASIC sample - record sort
+   XRSPB.DOC - Power Basic info - file sort
+
+
+New Microfocus Cobol samples and interfaces and samples provided on disk#2.
+   XSMFCB.CBL - Microfocus Cobol sample - file sort
+   XSMFCB.DOC - Microfocus Cobol info - file sort
+   __SMFCB.CBL- Microfocus Cobol interface for .GNT files - file sort
+
+   XRSMFCB.CBL - Microfocus Cobol sample - record sort
+   XRSMFCB.DOC - Microfocus Cobol info - recort sort
+   __RMFCB.CBL- Microfocus Cobol interface for .GNT files - record sort
+
+
+New filetype Leading General Purpose (LGP) added.
+   Note:  This is an unusual type of file structure and will not be
+   used by most people.  
+
+   LGP   Leading General Purpose.  In this filetype you specify what 
+         characters indicate the Beginning Of Record (BOR) and the End
+         Of File (EOF).  Up to 16 characters can be specified for both 
+         the BOR and EOF.  The BOR and EOF characters are specified in 
+         their decimal equivalents. 
+        
+         Example: If you have a file of records that begin in two CR/LF 
+         sequences and the file is terminated by a ASCII EOF (26) the 
+         following parameter could be used:
+        
+           Filetype(LGP,(13,10,13,10),(26))
+        
+         Note: 
+         1) The files directory size is used if the EOF character(s) 
+            are not encountered.  The EOF specification is always required
+            by the syntax of the Filetype parameter.  If your file does
+            not have an EOF marker, just specify some values that do not
+            exist in your file.
+      	 
+	 2) You must account for the length of you leading delimiter
+            when you specify your control field positions.  For example,
+            in the above sample the first character of the record would
+            begin in position 5.
+         
+Btrieve Key number and values can now be specified.
+   The Filetype(BT) parameter has be enhanced to allow a key number and
+   starting and ending key values to be specified.  This is usefull in 
+   certain circumstances where you want to limit the records that Opt-Tech
+   Sort will read.  
+
+   For example: if you have a Btrieve file where Zipcode (Key 0) is a btrieve key 
+   but city name (contained in columns 50 for a length of 20) is not and you want a to select people with zipcodes 
+   greater or equal to 80000 and less than or equal to 89999 and sort by
+   city the following control statement could be used.
+
+   FILETYPE(BT,"",1000,0,"80000","89999")
+    
+   The format of the parameter is:
+   
+   FILETYPE(BT,"OWNERID",MAXRECL,KEYNUMBER,"STARTVALUE","ENDVALUE")
+
+   Records are considered that are Greater Than or Equal to "STARTVALUE" and
+   Less Than or Equal to "ENDVALUE".  If "STARTVALUE" IS OMITTED ("") it is
+   assumed to be the lowest value.  If "ENDVALUE" is omitted it is assumed
+   to be the highest value.
+
+   Note: This facility is only valid with character type keys.  
+   
+******** NOTE: All information below this line has been incorporated ********
+******** into Manual version 4.4.  You only need to read this        ********
+******** information if you have a manual version 4.3 or earlier.    ********
+******** Although reading this information will give you a feel for  ********
+******** the newest features of Opt-Tech Sort.                       ********
+
+SORT.EXE renamed to OTSORT.EXE.  
+   To avoid any possible confusion with the DOS sort filter command 
+   (SORT.EXE), we have renamed Opt-Tech Sort from SORT.EXE to OTSORT.EXE 
+   (the OT stands for Opt-Tech).  Of course you can rename it to any name 
+   with an .EXE extension that you desire.
+
+New Duplicate Record processing parameters supported.
+   Two new duplicate record parameters have been added to complement the
+   DUPOUT parameter documented on page 38 of the Opt-Tech Sort manual
+   version 4.3.  The DUPOUT documentation for earlier versions is contained
+   later in this READ.ME file.  
+   
+   The DUPINclude and DUPEXclude parameters have been added.  
+   These parameters take the same subparameters as DUPOUT.  
+
+   DUPIN is used to "INclude" all records that have duplicate (non-unique) 
+   key fields.  
+
+   DUPEX is used to "EXclude" all records with duplicate keys.  It produces
+   a file of records with unique keys.
+   
+   The keys are specified as subparameters to the DUPOUT, DUPIN, or DUPEX
+   parameters.  For these parameters to work effectively your data should
+   be sorted on the field(s) that you are checking for duplicates.
+
+
+New OUTREC subparameter supported.
+   The "DUPCOUNT" subparameter can be use in the "OUTREC" parameter.
+   DUPCOUNT is use in conjunction with the DUPOUT parameter.  The 
+   parameter produces a six byte ASCII count of the number of records
+   with the key field equal to that of the record being output.  An 
+   optional subparameter can be used to indicate a value.  Records
+   containing counts of less than this value will not be output.
+
+   Example: The following control statement could be used on the 
+   sample data file SAMP.DAT contained on the Opt-Tech Sort master
+   diskette #1.    
+   
+   SORT(61,2,C,A) DUPOUT(61,2) OUTREC(1,68," ",DUPCOUNT(2),CRLF)
+   
+   This control statement would sort on state code, eliminate records
+   with duplicate state codes and produce an output record consisting
+   of the original record followed by the count of records that had
+   this state code.  Only when there are two or more records for a state
+   code would the record be output.
+
+
+New Sort field length supported.
+   The "I" (signed integer) and "W" (unsigned integer) can now be specified
+   as having only one (1) byte length.
+
+
+Microsoft Basic Ver 7 interfaces and samples provided.
+   Microsoft Basic Ver 7 sample programs and information can be found on 
+   diskette #2 under the filenames XMSBAS7.BAS, XMSBAS7.DOC,
+   XRSMSB7.BAS and XRSMSB7.DOC.
+
+
+Microsoft Fortran RAAT interface and sample provided.
+   Microsoft Fortran Record At A Time sample program and information can
+   be found on diskette #2 under the filenames XRSMSF.FOR and XRSMSF.DOC.
+
+
+Turbo Pascal RAAT interface and sample provided.
+   Turbo Pascal Record At A Time (RAAT) sample program and information can
+   be found on diskette #2 under the filenames XRSTP5.PAS and XRSTP5.DOC.
+
+
+mbp Cobol Indexed File structure and sample program now included.
+   mbp Cobol version 2.x indexed file structure is now supported as 
+   Filetype(MI2).  Although this file internally has two byte on the 
+   front of each record, these bytes should not be counted when specifying
+   your control field positions.  A sample mbp Cobol program XMBP.COB and
+   documentation file XMBP.DOC are included in the samples directory.
+
+
+RM Fortran Unformatted Sequential filetype now supported.
+   A new filetype has been added FILETYPE(RUS) is used for RM Fortran 
+   Unformatted Sequential files.
+
+
+******** NOTE: All information below this line has been incorporated ********
+******** into Manual version 4.3.  You only need to read this        ********
+******** information if you have a manual version 4.2 or earlier.    ********
+
+New Control Statement Option - NOEMS
+   The NOEMS option can be added to your control statement to prevent
+   EMS memory from being used.
+
+
+BYPASS-HEADER Control Statement parameter enhanced.
+   Any number of bytes can now be specified in the BYPASS-HEADER parameter.
+
+
+EQUALS Parameter is always set automatically.
+   The EQUALS parameter as documented in your manual is now always specified
+   automatically.  It not only makes Opt-Tech Sort maintain the order of 
+   equal keys, it also results in a significant performance improvement when
+   you have a lot of records with equal key fields.
+   
+
+OUTREC Control Statement parameter enhanced.
+   A new sub-parameter CHR$ has been added to the OUTREC parameter.  The
+   CHR$ sub-parameter allows you to insert non-printable characters into
+   your output record.  Up to 18 values can be specified in one CHR$ 
+   parameter.  The values specified are the decimal equivalents of the 
+   characters you want. A sample OUTREC parameter using CHR$ is show below.
+   OUTREC(...,CHR$(13,10),...)  where ... represent other OUTREC parameters.
+
+
+New Control Statement Parameter - OVERWRITE
+   The OVERWRITE parameter is an override to our error message #211.  This
+   parameter allows you to specify the same input and output file names
+   when this would not normally be allowed.  It does not allow you to 
+   specify the same input and output file names when you are doing a Merge
+   or not specifying the Sort parameter.
+
+
+New Control Statement Parameter - APOST
+   The APOST parameter allows you to change the literal delimiter in the
+   Include/Omit and Outrec parameters from a quote (") to an apostrophe (').
+   This parameter must be placed on the control statement before parameters
+   that use the apostrophe.  A sample control statement that uses the 
+   APOST parameter is:  APOST OUTREC('TEST',CRLF) INC(1,2,C,EQ,'NJ')
+
+
+New Control Statement Option - DUPOUT
+   The DUPOUT control statement option is a powerful facility to remove
+   duplicate records (records with equal key fields) from an output
+   file.  Example control statement:   SORT(10,20,C,A) DUPOUT(10,20)
+   This control statement would Sort a file and eliminate records that
+   had equal data in columns 10 for a length of 20 characters.
+   
+   If DUPOUT is specified without any subparameters then records that are
+   entirely equal to another record will be eliminated from the output.
+  
+   A special record buffer is set-up internally to hold a record when 
+   checking for duplicates.  The default size of this buffer is 1,000 bytes.
+   If your record length exceeds the buffer size you will receive error 
+   message #256.  You can increase the buffer size by using the Bnnnnn 
+   as your first DUPOUT subparameter.  Example:   DUPOUT(B5000,1,20)  
+   This parameter specifies a 5,000 byte internal buffer (for record lengths
+   up to 5000) and to check for duplicates in columns 1 for a length of 20.
+ 
+   NOTE: To work effectively your data should be sorted on the field(s)
+   that you are checking for duplicates.  Up to ten field subparameters
+   can be specified in the DUPOUT parameter. 
+
+   Parameter format:   DUPOut[([Bnnnnn,] [field specifier,...])]
+   where all parameters are optional and 
+   Bnnnnn is a record buffer size - default 1,000
+   field specifier is either Start,Length or #field number to check for dups.
+
+
+New field type added - JN (Justified Numeric)
+   A new field type JN (Justified Numeric) can now be used in the Sort/Merge
+   and Include/Omit statements.  It is similar to the N (Numeric) field type
+   in that it sorts ASCII numbers but it is about 50% faster because it makes
+   the assumption that the numbers are right justified in their field.  The
+   numbers can have leading zeros or blanks and a leading plus or minus sign.
+
+
+New Filetype added - CVS Cobol Variable Sequential
+   The MicroFocus/Microsoft Cobol Ver 3 variable sequential file structure 
+   is now supported.  Specify FILETYPE(CVS) on your control statement.
+
+
+Turbo Pascal Sample and .DOC valid for version 5 also.
+   The sample file XTPAS4.PAS and documentation file XTPAS4.DOC on disk #2
+   contain information for Turbo Pascal Version 5.
+
+
+Microsoft Cobol Ver 3 interfaces provided.
+   Microsoft Cobol Ver 3 uses the same sample programs and interfaces
+   as Micro Focus Cobol/2.  Micro Focus Cobol Samples and documentation
+   can be found on diskette #2 under the filenames XMFCOB2.CBL, XMFCOB2.DOC,
+   XRSMF2.CBL and XRSMF2.DOC.
+
+
+Zortech C interfaces and samples are the same as Microsoft C.
+
+
+Lattice C version 3.3 and later use Microsoft C interfaces.
+   Lattice C changed their assembly language interface requirements
+   as of version 3.3.  Lattice C version 3.3 and later work with the
+   Opt-Tech Sort's Microsoft C entry points.  Memory models correspond 
+   as follows: S = SORTMSCS, D = SORTMSCC, P = SORTMSCM, L&H = SORTMSCL
+
+
+Additional Record At A Time (RAAT) Interfaces and Samples now included.
+ 
+   The Medium and Large model Microsoft C Record Sort (RAAT) interfaces 
+   have been added to SORT.LIB their names are RSMSCM and RSMSCL.
+
+   Interpreted BASIC RAAT sample program and documentation are now included 
+   on diskette #2 under the filenames XRSIBAS.BAS and XRSIBAS.DOC.
+
+   Turbo BASIC RAAT sample program, documentation and interface are now
+   included on diskette #2 under the filenames XRSTBAS.BAS, XRSTBAS.DOC
+   and RSTBAS.COM.
+
+   Realia Cobol RAAT sample program and documentation are now included on
+   diskette #2 under the filenames XRSREAL.CBL and XRSREAL.DOC.
+
+   Micro Focus Cobol RAAT sample program and documentation are now included
+   on diskette #2 under the filenames XRSMF2.CBL and XRSMF2.DOC.
+
+
+Additional Record At A Time (RAAT) feature.
+ 
+   Passing a function value equal to 4 will abort the RAAT operation.
+   It will delete any sortwork file(s) and free any memory allocated. 
+
+
+End of READ.ME file diskette #1.
+
+
+

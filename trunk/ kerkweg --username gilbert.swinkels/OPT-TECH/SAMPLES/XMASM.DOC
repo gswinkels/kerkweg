@@ -1,0 +1,15 @@
+Sample Assembly Language Program Notes
+
+As noted in the Assembly Language source code Opt-
+Tech Sort can be invoked two ways.  Either by 
+calling the FAR entry point _MAINS or by using 
+software interrupt 7DH after loading SORTRES.  In 
+either case, the calling program must establish the 
+parameter block and put the parameter block segment 
+and offset into DS:DX before calling Opt-Tech Sort.
+
+The Opt-Tech Sort module containing the FAR entry 
+point _MAINS is contained in SORT.LIB.  Therefore 
+if your program calls _MAINS you will need to LINK 
+with SORT.LIB.
+

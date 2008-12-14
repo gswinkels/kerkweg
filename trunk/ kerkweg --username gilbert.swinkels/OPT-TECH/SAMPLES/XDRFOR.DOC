@@ -1,0 +1,17 @@
+Sample Digital Research Fortran 77 program notes.
+
+1. The modules SORTF77S.OBJ and SORTF77L.OBJ are 
+the small and large model interfaces between Opt-
+Tech Sort and DR F77.  These modules provide an 
+interface to the resident version of Opt-Tech Sort 
+(SORTRES).  SORTRES must be loaded with a workarea 
+(/W parameter).  See Chapter Four, for more 
+information on loading SORTRES.
+
+2.  Your Fortran program must call SORTF77S or
+SORTF77L depending upon the memory model you are 
+using.
+
+3.  An example of Linking the sort interface module 
+is provided:  LINK86 YOURPGM, SORTF77L
+

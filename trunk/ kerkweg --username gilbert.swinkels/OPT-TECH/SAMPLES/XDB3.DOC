@@ -1,0 +1,107 @@
+Sample dBASE III Program Notes
+
+Overview
+
+1. Opt-Tech Sort can be called directly from dBASE III by using the
+'RUN' facility or used as a stand-alone utility from DOS with
+dBASEIII files.  
+
+2. Since Opt-Tech Sort reads its data from the disk if you write to
+your data base you should use the 'USE' command to flush any buffers
+before calling Opt-Tech Sort.
+
+3. If the input filename, output filename, or control statement
+filename (or control statement preceded by a slash) are omitted, you
+will be prompted for them.
+
+4. If the optional "M" parameter is specified with the
+FILETYPE(DB3,M) parameter then the memory variables OPTSTAT and
+OPTCOUNT are written to disk by Opt-Tech Sort.  As shown in the
+sample, you can RESTORE these memory variables to check these
+Opt-Tech Sort status and number of records output.
+
+
+File Structure Notes
+
+1. The first byte in each record of a dBASE III file is a special
+byte that indicates if the record is deleted (it contains an asterisk
+"*" if the record is deleted). Therefore your first data field starts
+in position 2.  
+
+A simple way to determine starting offset of a field is to do a LIST
+STRUCTURE and add the lengths of all fields prior to your field and
+then add two to get its starting offset.
+
+2. Most of the time you will use the Filetype(DB3) when processing a
+dBASE file.  When you use Filetype(DB3) the output file will be a
+dBASE type file.  
+
+You can also process a dBASE file by using Filetype(Fix,nnn) with the
+BypassHeader parameter.  This allows you to output a "Flat" file
+(sometimes called an ASCII file or SDF file).  You can use the
+Opt-Tech Sort Outrec parameter to place only the fields you desire on
+your output file.  Other things like outputing a Carriage Return Line
+Feed on the end of the records and selecting a subset of records with
+the Include or Omit parameters can also be done.  A sample of this is
+shown below.
+
+A dBASE file consists of is a Header Block (variable size) followed
+by fixed length records.  The fixed length record size to use in the
+Filetype(Fix,nnn) (replace the nnn with the record size) can be
+obtained from a List Structure.  Remember the first character on the
+dBASE record is the delete byte and is not shown in the List
+Structure but its size is included in the total shown by List
+Structure.  
+
+The only thing "tricky" about processing a dBASE file using the
+Filetype(Fix,nnn) and Bypass this way is to get the size of the
+header.  This information is stored in the dBASE file in the header
+block bytes 9 and 10 (relative to 1) and can be viewed with a file
+utility such as Norton Utilities.  The header size is stored in an
+internal Intel integer format.  There are other ways to get the
+header size. Some utilities such as the the Norton Commander can
+display it when you ask for detailed information when viewing a dBASE
+file.  You can also use the dBASE Copy Structure command to make a
+temporary file that contains just the header and check the DOS
+directory size by doing a DIR.  The header size is one byte less than
+the size shown by the DIR command.
+
+Example:  A sample dBASEIII file is included in the Opt-Tech sort
+samples directory.  It is named SAMPDB3.DBF its structure is shown
+below
+
+. use sampdb3
+. list structure
+Structure for database : D:sampdb3.dbf
+Number of data records :      50
+Date of last update    : 07/11/89
+Field  Field name  Type       Width    Dec
+    1  COMPANY     Character     24
+    2  ACCOUNT     Character      9
+    3  PHONE       Character     13
+    4  CITY        Character     14
+    5  STATE       Character      3
+    6  ZIPCODE     Character      5
+** Total **                      69
+
+. quit
+ *** END RUN   dBASE III
+
+This file can be processed by the following Opt-Tech Sort control
+statement.
+
+	BYPPASS(226,D) FILETYPE(FIX,69) OUTREC(1,E,CRLF)
+
+The above control statement says that we should bypass the dBASE
+header it is 226 bytes (determined by methods described above) and
+that we should "D"elete it from the output file.  The above control
+statement also indicated we have a FILETYPE of FIXed length records
+of 69 bytes each (determined from the List Structure).  Our
+OUTputRECord should consist of the data that is in column 1 through
+the End of the record and should be followed by Carriage Return Line
+Feed characters to make it like a standard ASCII file.  Of course,
+only selected peices of the data could be output with the OUTREC and
+records could be selected by using the Opt-Tech Sort Include or Omit
+parameters.
+
+

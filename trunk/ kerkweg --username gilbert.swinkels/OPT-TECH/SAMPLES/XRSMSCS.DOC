@@ -1,0 +1,9 @@
+Sample Microsoft C Record Passing Program Notes.
+
+1. The Opt-Tech Sort modules needed to LINK the 
+sample program are contained in SORT.LIB.
+
+2. The sample program is setup for the small memory 
+model.  The sort entry point is RSMSCS. Capital 
+letters must be used.
+

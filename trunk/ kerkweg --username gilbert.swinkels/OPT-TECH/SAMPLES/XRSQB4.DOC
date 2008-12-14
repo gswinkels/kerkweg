@@ -1,0 +1,9 @@
+Sample Quick BASIC Record Passing Program Notes.
+
+1. The Opt-Tech Sort modules needed to LINK the 
+sample program are contained in SORT.LIB.
+
+2. If you want to build a Quick Library you will 
+need to include the following object modules into a 
+Quick Library:  RSQB4.OBJ SORT.OBJ SW0K.OBJ 
+

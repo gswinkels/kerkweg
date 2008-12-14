@@ -1,0 +1,46 @@
+Notes for Quick Basic Version 2 & 3
+
+When using Quick Basic Version 2 or 3 and you are 
+producing an .OBJ module then you should use the 
+information below to link your program.  
+ 
+A>LINK  
+Object Modules[.OBJ]:XQBAS3 [+ SWnnK]
+Run File [XQBAS3.EXE]:      (press enter)
+List File [NUL.MAP]:        (press enter)
+Libraries [.LIB]:SORT.LIB
+
+A sortwork area (SWnnK) may not be required when 
+linking.  You can use the /CP linker parameter as
+described in 'Linking Opt-Tech Sort' and 'Memory 
+Considerations' in chapter 4 to eliminate linking
+of a fixed size sortwork area (SWnnK).  Note, if 
+your program is chained or run from another BASIC 
+program, then the /CP parameter must be used when 
+you link the first program in the series.  That 
+is, you must use the /CP linker parameter on the 
+program that is run from the DOS prompt.
+
+If you want to compile directly to a memory or to 
+an .EXE file then you must use the BUILDLIB 
+facility included with Quick Basic.  Examples are 
+shown below for both the SORTIBMB and SORTIBMR 
+interfaces.
+
+If you are calling SORTIBMB use:
+  C:>buildlib 
+  Object Modules [.OBJ]: SORTIBMB + sw30k
+  Run File [USERLIB.EXE]:      (press enter)
+  List File [NUL.MAP]:         (press enter)
+  Libraries [.LIB]: SORT
+
+If you are calling SORTIBMR use:
+  C:>buildlib 
+  Object Modules [.OBJ]: SORTIBMR
+  Run File [USERLIB.EXE]:      (press enter)
+  List File [NUL.MAP]:         (press enter)
+  Libraries [.LIB]:            (press enter)
+
+Now use the /L option when you invoke Quick Basic 
+and Opt-Tech Sort will be available to you.
+

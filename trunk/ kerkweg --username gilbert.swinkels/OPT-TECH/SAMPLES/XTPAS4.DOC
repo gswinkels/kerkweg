@@ -1,0 +1,22 @@
+Sample Turbo Pascal Version 4 and 5 notes.
+
+1. Turbo Pascal Version 4 and 5 interface with 
+Opt-Tech Sort via a unit named SORTBTPU.TPU.  This
+unit does not exist on the Opt-Tech Sort master 
+diskette but can be created easily by compiling	the
+program SORTBTPU.PAS to disk.  SORTBTPU.OBJ is 
+required when compiling SORTBTPU.PAS.  Both of these
+files can be found on diskette #1. 
+
+Note: The reason we do not provide the SORTBTPU.TPU
+already compiled is that a unit is not compatible 
+across different versions of Turbo Pascal.  By 
+making the unit yourself you can keep current with 
+new Turbo Pascal versions.
+
+2. It is not necessary to load the memory resident 
+version of Opt-Tech Sort (SORTRES.EXE).
+
+3. The NUM_RECS parameter can be a LONGINT if you 
+use 4Byte parameter on your control statement.
+

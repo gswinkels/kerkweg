@@ -1,0 +1,128 @@
+SELEFILE is a small DOS program that allows you to select a file from a
+list of files displayed on the screen.  It can be run stand-alone, although
+there is no good reason to do so or from within another program.  SELEFILE
+pops up over the existing screen and restores the screen on exit.
+
+The syntax for SELEFILE is:
+
+SELEFILE pathname [urc ulc rows cols normal reverse highlight [title]]
+
+where:
+     pathname    is the set of files to display.  * and ? are allowed.
+                 (E.G. \dos\*.com -- will display all .COM files in the \DOS
+                  directory)
+     urc ulc     is the top left hand corner of the file display box.
+                 These are specified relative to 0.  The default is 12,12
+     rows        is the size of the window in rows, default is 12.
+     cols        is the number of columns of file names to display, the default
+                 is 4.
+     normal      is a decimal number from 0 to 255 for the colors of a normal
+                 (non high lighted display), the default is: 3 (CYAN on Black)
+     reverse     is a decimal number from 0 to 255 for the colors of a reverse
+                 video display.  The default is: 48 (Black on CYAN).
+     highlight   is a decimal number from 0 to 255 for the colors of a high
+                 lighted display.  The default is 17, but it is not used,
+                 although it must be present if a title is specified.
+     title       is the title that is to be displayed on the file selection
+                 window.  It may also be placed in the environment using
+                 SET TITLE=....
+
+When the SELEFILE window is displayed, you can perform the following functions:
+
+You can use the file selector to select a file from the list displayed
+or change the list of files to be displayed or enter your own file name.
+
+Position to a file using the arrow keys, PgUp, PgDn, HOME, END or by
+typing the first letter of a file name.  HOME will display the list
+starting at the first file.  END will display the list ending with the
+last file.  Pressing the first letter of a file name will position the
+cursor to the first file in the list which starts with that letter.
+Press the RETURN key to select the high lighted file.
+
+Other KEYS:
+
+ESC will cancel without selecting a file
+
+TAB allows you to enter a file name or change the files being displayed.
+    When you press TAB, you can enter a file name or path name.  If a
+    file name is entered, the File Selector will return that file name.
+    If a directory is entered or wild card characters (*,?) are entered
+    the File Selector will display the selected path.
+
+F2  allows you to move the File Selector to a different position.
+
+
+Example:
+
+Use the SET TITLE option to set a title and display all the files in
+D:\LSORT
+
+
+Issue the following commands:
+
+C:>set title=Files in Directory LSORT
+C:>SELEFILE D:\LSORT\*.*
+
+The following display will pop up:
+
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄDirectory of D:\LSORT\*.*ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+ ³Position to a file or directory(*), RETURN to Select, ESC to    ³
+ ³CANCEL, or TAB to enter NEW Directory or Filename here:         ³
+ ³                                                                ³
+ ³Dir: D:\LSORT\*.*                                               ³
+ ³                                                                ³
+ ³*..              ADDRESS.PRG     ADJUST.PRN      BUILDSRC.BAT   ³
+ ³ CROSSASC.DOC    DEETER.DOC      FILE3.LST       FILELIST.DOC   ³
+ ³ FILES.LST       JOERECPT        LBLLIST         LOVELOCK.DOC   ³
+ ³ LSORT.DOC       LSORT.LBL       LSORT.LVR       LSORT.TXT      ³
+ ³ LSORT23.ARC     LSORT23.DOC     LSORT23S.ARC    LSORT301.LVR   ³
+ ³ LSORTDAT.ARC    LSORTDC.MAK     LSORTLNK.BAT    LSORTMC.LNK    ³
+ F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄPgDnÄÙ
+
+A reverse video cursor will also display. The PgDn in the lower right hand
+corner of the window indicates that there are more files, and that you can
+see them by pressing PgDn.  If PgDn were pressed the display would change
+as shown below:
+
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄDirectory of D:\LSORT\*.*ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄPgUpÄ¿
+ ³Position to a file or directory(*), RETURN to Select, ESC to    ³
+ ³CANCEL, or TAB to enter NEW Directory or Filename here:         ³
+ ³                                                                ³
+ ³Dir: D:\LSORT\*.*                                               ³
+ ³                                                                ³
+ ³ LSORTMC.MAK     LSORTMSC.MAK    LSORTTC.LNK     LSORTTC.MAK    ³
+ ³ LSRT.ARC        LSRT.DOC        LSRT301S.ARC    LSRT3E.ARC     ³
+ ³ LSRT3O.ARC      LSRTLIBD.ARC    LSRTLIBM.ARC    LSRTNOTE.DOC   ³
+ ³ MAKEMSC.BAT     MCH.ARC         MDM370.DEF      NEWPATH.BAT    ³
+ ³ PCCLONE.DOC     README.DOC      REGUSER.DBF     SACHS.DOC      ³
+ ³ SELEFILE.$$$    SELEFILE.DOC    STATEFRM.DOC    TEDHARE.DOC    ³
+ F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄPgDnÄÙ
+
+PgDn is still displayed indicating that there are yet more files to see.  PgUp
+is also displayed in the upper right hand corner, indicating that pressing the
+PgUp key will also display more files.  Let's select file SELEFILE.DOC by
+moving the cursor to it and pressing return.  The display will change as below:
+
+
+ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄDirectory of D:\LSORT\*.*ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄPgUpÄ¿
+ ³Selection:                                                      ³
+ ³D:\LSORT\SELEFILE.DOC                                           ³
+ ³ Press RETURN to confirm, any other character to CANCEL         ³
+ ³Dir: D:\LSORT\*.*                                               ³
+ ³                                                                ³
+ ³ LSORTMC.MAK     LSORTMSC.MAK    LSORTTC.LNK     LSORTTC.MAK    ³
+ ³ LSRT.ARC        LSRT.DOC        LSRT301S.ARC    LSRT3E.ARC     ³
+ ³ LSRT3O.ARC      LSRTLIBD.ARC    LSRTLIBM.ARC    LSRTNOTE.DOC   ³
+ ³ MAKEMSC.BAT     MCH.ARC         MDM370.DEF      NEWPATH.BAT    ³
+ ³ PCCLONE.DOC     README.DOC      REGUSER.DBF     SACHS.DOC      ³
+ ³ SELEFILE.$$$    SELEFILE.DOC    STATEFRM.DOC    TEDHARE.DOC    ³
+ F1=HELPÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄPgDnÄÙ
+
+If you are happy with your selection, you can press RETURN again.  If you do,
+the pop up window above will go away and SELEFILE.$$$ will contain:
+
+D:\LSORT\SELEFILE.DOC
+
+

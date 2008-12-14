@@ -1,0 +1,48 @@
+Sample Lattice C Program Notes:
+
+1) Please note, for Lattice C version 3.3 or later 
+the Microsoft C entry points should be used.  Memory 
+models correspond as follows.
+
+Lattice C model        Microsoft entry point
+  S                      SORTMSCS
+  D                      SORTMSCC
+  P                      SORTMSCM
+  L                      SORTMSCL
+  H                      SORTMSCL
+The file SORT1ST.OBJ is not required for Lattice C 
+version 3.3 or later.
+
+2) The Opt-Tech Sort entry point used with Lattice 
+C depends upon the Lattice C memory model you are 
+using.  The entry point name is SORTLATx where x is 
+either S,D,P,L depending upon the memory model.  In 
+the above example the small memory module was used 
+so the entry point was SORTLATS. 
+
+
+Linking Opt-Tech Sort with Lattice C
+
+You should be familiar with the normal procedure 
+for linking Lattice C programs that is described in 
+your Lattice C manual.
+
+Note: You must specify SORT1ST as the first object 
+module.  A sample link session is shown below.  
+
+Example:
+
+     A>LINK
+     Object Modules[.OBJ]:SORT1ST + "x" + XLATC
+     Run File [SORT1ST.EXE]:XLATC
+     List File [NUL.MAP]:     (enter is pressed)
+     Libraries [.LIB]:"y" SORT
+
+In the above example "x" represents the object 
+module normally linked first as specified in your 
+Lattice C documentation.  "y" represents the 
+appropriate Lattice C library file.  Opt-Tech Sort 
+can be linked with all four memory models.  The 
+Opt-Tech Sort "first" module (SORT1ST) and library 
+(SORT) are the same for all Lattice memory models.
+

@@ -1,0 +1,320 @@
+QSORT - Version 1.2 - Copyright (c) 1985 - Ben Baker
+
+
+QSORT   may  be  freely  copied  and  distributed  for  non-
+commercial purposes, provided  that  1)  it  is  distributed
+under  the  name  "QSORT,"  and  2)  this documentation file
+always accompanies it.  Vendors wishing to distribute  QSORT
+commercially,  or  with  commercial products may contact the
+author at the address below for terms.
+
+QSORT is made available  in  the  public  domain  under  the
+"share-ware"  concept.  If you find this program useful, you
+are asked to send its author a  donation  commensurate  with
+its  value  to you ($10 would be nice).  This will encourage
+the development of other  useful,  affordable  tools.   Send
+checks to:
+
+                Ben Baker
+                P.O. Box 425
+                Godfrey, Il 62035
+
+Bug reports or suggestions may be sent to the above  address
+or  via  FidoNet  mail  to Fido node # 100/76, Ben's Bakery.
+(NOTE:  This is NOT a BBS, but  does  receive  FidoNet  mail
+forwarded via Fido 100/51.)
+
+Purpose:   This  filter  command  reads  text  data from the
+           standard input device, sorts it and writes it  to
+           the  standard  output device.  Optionally, it may
+           be used to sort a file "in place."
+
+Format:    QSORT [filespec] [/R] [/Mlen]
+                            [/[L][+|-][col][:width]. . .
+
+Type:      Internal     External
+                          ****
+
+Remarks:   Sorts   are   done   using  the  ASCII  collating
+           sequence, or optionally using  lexical  sequence.
+           Tab characters are not expanded with blanks.
+
+           Up to 30 field parameters, /[L][+|-][col][:width]
+           may be used to specify key fields and are ordered
+           major  to  minor  from left to right.  The 'L' if
+           present specifies  "lexical"  sequence  for  this
+           field.    (See  discussion  of  lexical  sequence
+           below.) The  minus  (-)  sign  specifies  reverse
+           order  for  this field.  The plus (+) sign (or no
+           sign) specifies normal sort order.   If  present,
+           [col]  defines the beginning column of the field.
+           If omitted, column 1  is  assumed.   If  present,
+           [:width]  defines the field width in columns.  If
+           width is omitted,  the  rest  of  the  record  is
+           assumed.   If  no key field parameters are given,
+           the entire record is  the  key  field.   Any  key
+           field  which falls beyond the end of a particular
+           record is treated as a null (zero  length)  field
+           for that record.
+
+           The  /Mlen parameter allows optionally specifying
+           the maximum record length.  It  may  lie  in  the
+           range  of  /M1  to  /M3600.   The  upper bound is
+           necessary to permit a "worst case"  merge  to  be
+           done  in  a buffer less than 64 Kbytes in length.
+           If this parameter  is  present,  it  must  appear
+           before  any  field parameters.  If it is omitted,
+           132 is the default.  NOTE:  Maximum record length
+           may  be  larger than any record in the file to be
+           sorted, but excessive maximum record length  will
+           unecessarily degrade the performance of QSORT.
+
+           The  /R  parameter  is included for compatibility
+           with DOS SORT and is redundant.  It reverses  the
+           sense of sort direction for all key fields.
+
+           If  filespec  is  included  in  the  command, any
+           redirection specified will be ignored.  Disk  and
+           path  specifiers  may be included in filespec and
+           will be used for both input  and  output.   QSORT
+           will sort the input file defined by filespec to a
+           file with  an  extent  of  .$$$.   On  successful
+           completion of the sort, the input file is deleted
+           and the  output  file  is  renamed  to  filespec,
+           accomplishing, in effect, an "in-place" sort.
+
+           The  /Mlen  parameter  and  field parameters must
+           observe the relative ordering defined above,  but
+           filespec, redirection and/or the /R parameter may
+           appear anywhere on the command line.
+
+Examples:  Produce a directory listing  sorted  by  creation
+           date  and  time,  and display it on the console a
+           screen's worth at a time:
+
+               A>DIR | QSORT /30:2 /24:5 /39 /34:5 | MORE
+
+           The output of the DIR command is piped to  QSORT.
+           The  key  fields  defined are, from left to right
+           (major to minor), year (2 digits), month and day,
+           AM/PM flag and time.  The output of QSORT is then
+           piped to MORE for display.
+
+           Next, replace the unsorted FILE.TXT with the same
+           data  sorted in reverse order.  Use columns 10 to
+           16 as the sort key:
+
+               A>QSORT FILE.TXT /-10:7
+           or
+               A>QSORT FILE.TXT /10:7 /R
+           or (SORT compatible)
+               A>QSORT FILE.TXT /R /+10
+
+           Finally, perform a simple sort on a file with 240
+           byte records (not including newline or EOL):
+
+               A>QSORT LARGE.REC /M242
+
+
+                --- Implementation Notes ---
+
+QSORT is intended as an enhanced replacement for  DOS  SORT.
+It is nearly fully upward compatible, but provides much more
+flexibility.  Multiple sort keys may be specified, a  pseudo
+in-place  sort  may be performed and files and/or records of
+any  size  may  be  sorted  provided  only  that  there   is
+sufficient  disk  space  for work files and the output file.
+QSORT  uses  the  "quick  sort"  algorithm,   which   cannot
+guarantee  the  order  of  records whose keys are all equal.
+This in the  one  "incompatibility"  with  DOS  SORT,  which
+retains  the  original  order  of  records when its only key
+compares equal.  This is important to SORT because  it  must
+be  invoked  multiple  times  to effect a multiple key sort.
+With QSORT you only sort once, and there are usually  enough
+keys  available  to  insure  you  get the order you want the
+first time.
+
+QSORT uses a sort buffer of about 60K bytes, and  will  fill
+the  buffer as full as possible, and then sorts the contents
+of the buffer.  If it has reached the end of the input  file
+and  has  not  yet generated any work files, the contents of
+the buffer are written to the output  file,  completing  the
+sort operation.
+
+If  the input file is too large to fit into the sort buffer,
+as much of the input file  as  possible  is  read  into  the
+buffer, sorted, then written to a temporary work file.  This
+process is repeated as many times as  necessary  to  process
+the  entire  input  file, each time creating a new work file
+for the sorted output.
+
+Upon completion of the "sort phase," QSORT begins  a  "merge
+phase."  Each  work  file  is  a sorted sub-set of the input
+file.   Thus,  work  files  may  be  read  sequentially  and
+comnbined  to  produce  a sorted output.  QSORT will open as
+many work files as DOS permits (more on this later).  If all
+the remaining work files can be opened, the sorted result is
+written to the output file.  Otherwise, a new work  file  is
+created  and  another  merge pass will be required.  On each
+merge  pass,  the  number  of  work  files  is  reduced  and
+eventually  all  remaining work files will be opened and the
+sorted output file  will  be  written  completing  the  sort
+operation.
+
+QSORT  is  smart  enough  to  never  have just one work file
+remaining,  which  would   require   an   unnecessary   copy
+operation.
+
+QSORT,  to  work  properly, needs enough space on the output
+disk to hold the output file.  Even if the input file is  to
+be  deleted  and  resides in the same directory, that is not
+done until after  the  output  file  has  been  successfully
+written.   If  one  merge  pass  is  required,  the  default
+directory should have about 10% more space than the size  of
+the  input file for work files.  If more than one merge pass
+will be required, allow about twice the size  of  the  input
+file  as  work file space on the default disk.  If QSORT has
+an error, it  will  terminate  with  the  input  file  still
+intact, and will return to DOS with ERRORLEVEL = 1.
+
+Each  time  QSORT  must create a new work file, the data put
+into it must be processed again.  Obviously, the more  files
+QSORT  can  open  during  the merge phase, the faster it can
+sort large files.  If DOS is properly preconditioned,  QSORT
+can  have  up  to 15 work files open at once, and very large
+files can be sorted with just one sort pass  and  one  merge
+pass.  Unfortunately, that capability is not automatic.
+
+DOS  has a fixed number of file "handles" that it associates
+with open files.  The default number is eight, but DOS opens
+five  of  them for standard input, standard output, standard
+error, standard printer and standard auxiliary device.  That
+leaves  three  for merging.  A 250K input file would produce
+five work files and that  would  take  three  merge  passes;
+merge  two  into  one,  leaving  four;   merge  two into one
+leaving three;  and finally  merge  three  into  the  output
+file.
+
+Worse  yet,  since  you  need  at  least  three  handles for
+merging, if you have resident programs that have open  files
+you can't merge at all!
+
+DOS  can  be  told to set aside more space for file handles.
+Each handle is only 39  bytes  and  it's  memory  very  well
+spent.  One process can have a maximum of 20 handles open at
+one time, but since resident processes may be using handles,
+I recommend 25 to 35.  To do this, the root directory of the
+DISK OR DISKS YOU  BOOT  FROM  must  contain  a  file  named
+CONFIG.SYS.    If  your  boot  disk(s)  already  contains  a
+CONFIG.SYS, edit it, or if not, create  it  to  contain  the
+following line:
+
+     FILES=25 (or more)
+
+While  we're  at  it, let's add one more thing to CONFIG.SYS
+which will improve the performance of QSORT and  many  other
+programs  as  well.   DOS  provides,  by  default,  two disk
+buffers.  These are the buffers it uses to do its disk reads
+and  writes.   During  the  merge  phase QSORT may have many
+files open at once, reading from them in more or less random
+order.   DOS  may  have  to  read  the  same physical sector
+several times to get all its data.   But  DOS  can  remember
+what's  in  each buffer and where it came from, and will not
+reread a sector it already has in a buffer.  DOS  needs  528
+bytes for each buffer.  I recommend 20 buffers to make QSORT
+perform well under the most adverse conditions.   This  will
+require  an  additional 9504 bytes or slightly more than 9K,
+again memory  well  spent,  so  we  add  to  CONFIG.SYS  the
+following line:
+
+     BUFFERS=20
+
+I  hope  you  find  this  program useful.  Your comments and
+suggestions are welcome.  My address is at the top  of  this
+file.   A  planned  version  2  will  provide file merge and
+record selection capability.   (Sort  of  a  quick-and-dirty
+file manager utility.)
+
+                   Notes on Version 1.1:
+                   ----- -- ------- ----
+
+QSORT  1.0  set  an arbritrary maximum record length of 132.
+This should certainly be enough, right?  Wrong!  The program
+had not been released a month before I heard from a user who
+needed to sort 240-byte records.  It occurred  to  me  that,
+for  any  reasonable  maximum  length, someone would need to
+sort bigger records.  The sort and merge subroutines need to
+know  the  maximum  size  record  to be expected in order to
+manage their buffers, and an unnecessarily large limit would
+make them wasteful of space and degrade performance.
+
+The  solution,  of  course,  was  to add the '/M' parameter,
+allowing a user to specify his  own  limit  if  132  is  not
+enough.
+
+One other minor change was made to the program.  Version 1.0
+documentation implied (in fact stated!) that  column  number
+could be omitted from a field parameter and would default to
+1.  In other words '/1:4' and '/:4'  were  equivalent.   The
+program,  however,  would not accept the latter.  Since this
+is a useful shorthand, the program has been changed to match
+the documentation.
+
+                   Notes on Version 1.2:
+                   ----- -- ------- ----
+
+This version was borne out of my own need to sort files with
+mixed capitalization.  ASCII sequence produced some  bizzare
+results  when  words  beginning with 'Z' sorted before those
+beginning with  'a.'  Case-insensitive  sorting  isn't  much
+better because upper and lower case get mixed randomly.
+
+The following table will illustrate what I mean:
+
+     INPUT         ASCII          CASE           LEXICAL
+                               INSENSITIVE
+     
+     DeLaPort      Baker          Baker          Baker
+     Smith         Brown          brown          Brown
+     brown         DeAngelo       bRown          bRown
+     deLaPorte     DeLaPort       Brown          brown
+     Deangelo      Deangelo       Deangelo       DeAngelo
+     deAngelo      Deangelo       deangelo       Deangelo
+     Brown         DelaPort       Deangelo       Deangelo
+     smith         DelaPorte      deAngelo       deAngelo
+     delaPorte     Harry          DeAngelo       deangelo
+     DelaPort      Smith          delaPort       DeLaPort
+     DeAngelo      bRown          DelaPort       DelaPort
+     DelaPorte     brown          delaPort       delaPort
+     deangelo      deAngelo       DeLaPort       delaPort
+     Harry         deLaPorte      DelaPorte      DelaPorte
+     delaPort      deLaPorte      deLaPorte      deLaPorte
+     Baker         deangelo       delaPorte      deLaPorte
+     deLaPorte     delaPort       deLaPorte      delaPorte
+     Deangelo      delaPort       Harry          Harry
+     bRown         delaPorte      smith          Smith
+     delaPort      smith          Smith          smith
+
+The first column is a list of names in arbitrary order.  The
+second is an ASCII sort of that list.   Third  we  have  one
+possible  case-insensitive  sort  of  the  list.  The fourth
+column is what I really wanted.  It is sorted the way  these
+words would be sorted in a dictionary (or lexicon).
+
+The  lexical sort implemented in this version is achieved by
+making case-insensitive comparisions of entire fields.  Only
+when  a  comparison of the endire field is equal is an ASCII
+comparison called upon to arbitrate ties.
+
+Lexical sorting can be very useful when needed, but be aware
+that  unnecessarily  specifying lexical ordering may degrade
+performance of QSORT.
+
+Speaking of  performance,  QSORT  does  pretty  well.   Matt
+Kanter of New York reports sorting a 650K file in 40 minutes
+and that ain't too shabby!  Never-the-less, QSORT  has  been
+made  more  intelligent  in  the way it schedules merging of
+very very  large  files,  thus  improving  performance  when
+multiple  merge  passes are required, a feature that will go
+unnoticed by most users (sigh).
+

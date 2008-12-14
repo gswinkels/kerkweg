@@ -1,0 +1,16 @@
+Sample Turbo C program notes.
+
+1. SORT.LIB contains the interface files needed for 
+interfacing Turbo C with Opt-Tech Sort.  SORT.LIB 
+can be specified in a Turbo C Project File so that 
+Turbo C can find the routines necessary when 
+linking your programs that call Opt-Tech Sort.
+
+2. The Opt-Tech Sort entry point name depends upon 
+the memory model that you are using.  The format of 
+the entry point name is SORTTCx where x is either 
+S, M, C, or L representing the Small, Medium, 
+Compact or Large model. Huge programs can also use 
+the L entry point.  The entry point name must be in 
+upper-case letters.
+

@@ -1,0 +1,25 @@
+Sample DR PL/I program notes:
+
+1. The Opt-Tech Sort interface for PL/I is SORTPLI.
+
+2. NUMREC and RETCODE must be FIXED BINARY.
+
+
+Linking Digital Research PL/I with Opt-Tech Sort
+
+1. A separate object module SORTPLI.OBJ has been 
+included for linking with your  PL/I program.
+
+2. You must use your PL/I LINK86 linker to link    
+your PL/I program with Opt-Tech Sort.
+
+3. An example of linking the sample program is    
+shown below.  
+
+     A> LINK86  XDRPLI,SORTPLI
+
+4) D/R PL/I does not allow Opt-Tech Sort to 
+dynamically allocate memory.  Therefore you must 
+load SORTRES with a workarea size.  See Chapter 
+Four (Loading SORTRES). 
+

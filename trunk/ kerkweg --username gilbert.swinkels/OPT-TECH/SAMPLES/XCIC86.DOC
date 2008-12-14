@@ -1,0 +1,26 @@
+Sample Computer Innovations C86 Program Notes:
+
+1) The Opt-Tech Sort entry point used with CI 
+C86 depends upon the memory model you are using. The 
+entry point name is SORTC86S for the smallmodel and 
+SORTC86B for the big model.
+
+
+Linking Opt-Tech Sort with CI C86
+
+You should be familiar with the normal procedure 
+for linking C86 programs that is described in your 
+C86 manual.  
+
+     A>LINK
+     Object Modules[.OBJ]:XCIC86
+     Run File [XCIC86.EXE]:   (enter is pressed)
+     List File [NUL.MAP]:   (enter is pressed)
+     Libraries [.LIB]:C86SAS SORT
+
+The above example shows linking a C86 program that 
+was compiled under the small memory module.  Opt-
+Tech Sort can be linked with the small and big 
+memory models supported by C86, you should of 
+course use the appropriate C86 library.
+

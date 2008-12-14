@@ -1,0 +1,22 @@
+Sample CB-86 Program Notes
+
+1) You must define a function for SORTCB86.
+
+2) You must use VARPTR when passing the NUMRECS% 
+and RETCODE% to Opt-Tech Sort.
+
+
+Linking CB86 with Opt-Tech Sort
+
+1) SORTRES must be loaded before you can call Opt-
+Tech Sort from CB-86.  CB-86 does not allow Opt-
+Tech Sort to dynamically allocate memory, therefore 
+you should specify a memory workarea size when 
+loading SORTRES.  See Chapter Four on loading 
+SORTRES. 
+
+2) When you link your CB-86 programs you must 
+include the SORTCB86.OBJ module provided on your    
+Opt-Tech Sort diskette. Example: 
+C:>LINK86 XCB86,SORTCB86
+

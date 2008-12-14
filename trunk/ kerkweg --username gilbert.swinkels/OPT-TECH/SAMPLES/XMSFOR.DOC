@@ -1,0 +1,27 @@
+Sample Microsoft Fortran Program Notes:
+
+1) The Opt-Tech Sort entry point used with 
+Microsoft Fortran is "SORTF".
+
+2) The INFILE, OUTFILE, and CTLSTMT parameters must 
+be followed by a "/" (slash).  
+
+3) RETCODE must be defined as a 2 byte integer.  
+NUMRECS can be a 4 byte integer if you include the 
+4Byte parameter on your control statement.
+
+Linking Microsoft Fortran with Opt-Tech Sort
+
+An example of linking the sample Microsoft Fortran 
+program to Opt-Tech Sort is shown below. 
+
+     A>LINK
+     Object Modules[.OBJ]:XMSFOR + [SWnnK]
+     Run File [XMSFOR.EXE]:   (enter is pressed)
+     List File [NUL.MAP]:   (enter is pressed)
+     Libraries [.LIB]:SORT
+
+A sortwork area (SWnnK) may not be required when 
+linking.  Please see 'Linking Opt-Tech Sort' and 
+'Memory Considerations' in Chapter Four.
+
